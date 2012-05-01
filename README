@@ -1,0 +1,6 @@
+AN!Tools perl module.
+
+Please see POD for details.
+
+NOTE: Please change the permissions on AN/unreadable.xml to 220 (write-only, 
+      write-only, no access) before running the tests. 
