@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+This is the AN::Tools master 'words' file.
+-->
+
+<words>
+	<!-- Canadian English -->
+	<name>tools.xml</name>
+	<version>0.0.001</version>
+	<langs>en_CA,jp</langs>
+	<lang name="en_CA" long_name="Canadian English">
+		<key name="comment">Created by Madison Kelly (mkelly@alteeve.com) for the AN::Tools suite of perl modules.</key>
+	<!-- Test words. Do NOT change unless you update 't/String.t' or tests will needlessly fail. -->
+		<key name="t_0000">Test</key>
+		<key name="t_0001">Test replace: [#!var!0!#].</key>
+		<key name="t_0002">Test Out of order: [#!var!1!#] replace: [#!var!0!#].</key>
+		<!-- Do not use 't_0003'. It is used to test failures caused by calling a non-existent key. -->
+		<key name="t_0004">#!FREE!#</key>
+	<!-- Internal module words -->
+		<key name="an_0000">AN!Tools RDF</key>
+		<key name="an_0001">AN!Tools Rapid Development Framework</key>
+	</lang>
+	
+	<!-- 日本語 -->
+	<lang name="jp" long_name="日本語">
+		<key name="comment">Created by Madison Kelly (mkelly@alteeve.com) for the AN::Tools suite of perl modules.</key>
+		<key name="t_0000">テスト</key>
+		<key name="t_0001">テスト いれかえる: [#!var!0!#]。</key>
+		<key name="t_0002">テスト、 整理: [#!var!1!#]/[#!var!0!#]。</key>
+		<!-- Do not use 't_0003'. It is used to test failures caused by calling a non-existent key. -->
+		<key name="t_0004">#!FREE!#</key>
+	<!-- Internal module words -->
+		<key name="an_0000">AN!Tools RDF</key>
+		<key name="an_0001">AN!Tools; すぱやい。進展。機構。</key>
+	</lang>
+</words>

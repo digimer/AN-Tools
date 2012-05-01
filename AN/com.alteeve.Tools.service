@@ -1,0 +1,4 @@
+# The service file for AN::Tools.
+[D-BUS Service]
+Name=com.alteeve.Tools
+Exec=/usr/lib/perl5/AN/dbus.pl
