@@ -54,13 +54,13 @@ The config file formatting is described at the top of the C<an.conf> file in the
 
   # Check if a file under a set of directories can be found.
   $an->Storage->find({
-  	file		=>	"Net::DBus::Exporter.pm",
+  	file		=>	"AN::Tools::Storage.pm",
   	dirs		=>	\@INC,
   	fatal		=>	1,
   });
   
   # The alternative, short-form of calling this method is:
-  $an->Storage->find("Net::DBus::Exporter.pm", \@INC, 1);
+  $an->Storage->find("AN::Tools::Storage.pm", \@INC, 1);
 
 =head3 Details
 

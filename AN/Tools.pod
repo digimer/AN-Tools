@@ -39,24 +39,6 @@ Currently supported load-time arguments:
 
 Tell all AN::Tools modules to use a different default language. The format is: [C<{default_language}='code'>].
 
-=item C<dbus_address>
-
-I<NOTE>: This option must be set when AN::Tools is first loaded because the constructor method itself connects to the DBus!
-
-Tell all AN::Tools modules to use a specific address for the DBus message bus. The default is to use the 'system' bus. An example value might be: [C<unix:path=/tmp/tb_dbus.socket>] which would use a dedicate UNIX socket. The format is: C<{dbus_address}='arg'>.
-
-=item C<dbus_bus>
-
-This takes no arguments and simply returns a handle to the DBus message bus in use by AN::Tools.
-
-=item C<an_dbus_service>
-
-This takes no arguments and simply returns a handle to the DBus service in use by AN::Tools.
-
-=item C<an_dbus_object>
-
-This takes no arguments and simply returns a handle to the DBus object in use by AN::Tools.
-
 =item C<Readable::base2>
 
 Tell AN::Tools::Readable to translate between byte sizes and human readable sizes using base2 notation when set to: [C<1>] (default) or base10 notation when set to: [C<0>]. The format is: [C<{Readable}{base2}=[0|1]>].

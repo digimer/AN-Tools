@@ -42,12 +42,6 @@ sub new
 	my $param=shift;
 	
 	my $self={
-		DBUS				=>	{
-			ADDRESS				=>	"",
-			BUS				=>	"",
-			SERVICE				=>	"",
-			OBJECT				=>	"",
-		},
 		HANDLE				=>	{
 			ALERT				=>	AN::Tools::Alert->new(),
 			CHECK				=>	AN::Tools::Check->new(),
@@ -60,13 +54,6 @@ sub new
 		LOADED				=>	{
 			'Math::BigInt'			=>	0,
 			'IO::Handle'			=>	0,
-			'Net::DBus'			=>	0,
-			'Net::DBus::Service'		=>	0,
-			'Net::DBus::RemoteService'	=>	0,
-			'Net::DBus::Reactor'		=>	0,
-			'Net::DBus::Object'		=>	0,
-			'Net::DBus::RemoteObject'	=>	0,
-			'Net::DBus::Exporter'		=>	0,
 			Fcntl				=>	0,
 		},
 		DATA				=>	{},
@@ -116,7 +103,6 @@ sub new
 		### Local parameters
 		# Set the default language.
 		$self->default_language		($param->{default_language}) 		if $param->{default_language};
-		$self->dbus_address		($param->{dbus_address}) 		if $param->{dbus_address};
 		
 		### AN::Tools::Readable parameters
 		# Readable needs to be set before Log so that changes to
@@ -145,10 +131,6 @@ sub new
 	
 	# Start the logger. This will create the log file if needed.
 # 	$an->Log->
-	
-	# Connect to the DBus.
-# 	print "$THIS_FILE ".__LINE__.": param->{'_skip_dbus'}: [$param->{'_skip_dbus'}]\n";
-# 	$self->_connect_to_dbus() if not defined $param->{'_skip_dbus'};
 	
 	return ($self);
 }
@@ -256,42 +238,6 @@ sub String
 	return ($self->{HANDLE}{STRING});
 }
 
-# This sets and/or returns the address to be used when connecting to the DBus
-sub dbus_address
-{
-	my $self=shift;
-	my $set=shift if $_[0];
-	
-	# ie: unix:path=/tmp/tb_dbus.socket
-	if ($set)
-	{
-		$self->{DBUS}{ADDRESS}=$set;
-	}
-	
-	return ($self->{DBUS}{ADDRESS});
-}
-
-# Returns the handle to the DBus bus.
-sub an_dbus_bus
-{
-	my $self=shift;
-	return ($self->{DBUS}{BUS});
-}
-
-# Returns the handle to the DBus bus.
-sub an_dbus_service
-{
-	my $self=shift;
-	return ($self->{DBUS}{SERVICE});
-}
-
-# Returns the handle to the DBus bus.
-sub an_dbus_object
-{
-	my $self=shift;
-	return ($self->{DBUS}{OBJECT});
-}
-
 ### Contributed by Shaun Fryer and Viktor Pavlenko by way of TPM.
 # This is a helper to the above '_add_href' method. It is called each time a
 # new string is to be created as a new hash key in the passed hash reference.
@@ -312,44 +258,6 @@ sub _add_hash_reference
 			$href1->{$key} = $href2->{$key};
 		}
 	}
-}
-
-# This is called on startup to connect to the AN::Tools DBus server. If it's
-# not yet running, this call should fire it up.
-sub _connect_to_dbus
-{
-	my $self=shift;
-	
-	# Load Net::DBus if not yet loaded.
-	$self->_load_net_dbus() if not $self->_net_dbus_loaded();
-	my $bus="";
-### Private bus isn't supported yet.
-# 	if ($self->dbus_address)
-# 	{
-# 		# I've got an address, so use it.
-# 		$bus=Net::DBus::Binding::Connection->new(address => $self->dbus_address);
-# 	}
-# 	else
-# 	{
-		# No address specified, connect to the system bus.
-		print "Connecting to the DBus system bus.\n";
-		$bus=Net::DBus->system();
-		print "Connected: [$bus]\n";
-# 	}
-	
-	print "Getting a handle on the service under the name space: [com.alteeve.Tools]\n";
-	my $an_service=$bus->get_service("com.alteeve.Tools");
-	print "Getting a handle on the object: [/com/alteeve/Tools] under the name space: [com.alteeve.Tools]\n";
-	my $an_object=$an_service->get_object("/com/alteeve/Tools", "com.alteeve.Tools");
-	
-	print "Is the AN DBus server alive? [".$an_object->is_alive."].\n";
-	
-	print "Copying the bus, service and object into AN::Tool's bless'ed reference.\n";
-	$self->{DBUS}{BUS}=$bus;
-	$self->{DBUS}{SERVICE}=$an_service;
-	$self->{DBUS}{OBJECT}=$an_object;
-	
-	return(1);
 }
 
 # This returns an array reference stored in 'self' that is used to hold an
@@ -430,64 +338,6 @@ sub _io_handle_loaded
 	$self->{LOADED}{'IO::Handle'}=$set if defined $set;
 	
 	return ($self->{LOADED}{'IO::Handle'});
-}
-
-# This loads in 'Net::DBus::Exporter' on call.
-# sub _load_net_dbus_exporter
-sub _is_net_dbus_exporter_loadable
-{
-	my $self=shift;
-	
-	# As with 'Net::DBus::Object', loading 'Net::DBus::Exporter' here is
-	# essentially useless. So instead, we test if it is loadable and return
-	# '1' if so. It is up to the caller to load it with their interface
-	# specified.
-	eval 'use Net::DBus::Exporter qw(com.alteeve.Tools);';
-	if ($@)
-	{
-		my $title="'AN::Tools' tried to load the 'Net::DBus::Exporter' module but it does not seem to be available.";
-# 		$title="'AN::Tools' tried to load the 'Net::DBus::Exporter qw($service)' module but it does not seem to be available." if $service;
-		my $message="Loading the perl module 'Net::DBus::Exporter' failed with the error: $@.";
-# 		$message="Loading the perl module 'Net::DBus::Exporter qw($service)' failed with the error: $@.";
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"$title",
-			message	=>	"$message",
-			code	=>	42,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	
-	return (1);
-}
-
-# This loads in 'Net::DBus::Object' on call.
-sub _is_net_dbus_object_loadable
-{
-	my $self=shift;
-	
-	# Normally, this needs to be called using 'use base ...', but that only
-	# works in the calling package. So here, we simply check that it will
-	# load at all and leave it to the caller to actually load it. For that
-	# reason, this method returns '1' on success so that the caller can
-	# use this in an 'if' statement a little more cleanly.
-	eval 'use Net::DBus::Object;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus::Object' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus::Object' failed with the error: $@.",
-			code	=>	40,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	
-	return (1);
 }
 
 # This loads in 'Fcntl's 'flock' functions on call.
@@ -577,146 +427,6 @@ sub _load_math_bigint
 	return(0);
 }
 
-# This loads in 'Net::DBus' on call.
-sub _load_net_dbus
-{
-	my $self=shift;
-	
-	eval 'use Net::DBus;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus' failed with the error: $@.",
-			code	=>	36,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	else
-	{
-		# Good, record it as loaded.
-		$self->_net_dbus_loaded(1);
-		print "Net::DBus loaded.\n";
-	}
-	
-	return (0);
-}
-
-# This loads in 'Net::DBus::Reactor' on call.
-sub _load_net_dbus_reactor
-{
-	my $self=shift;
-	
-	eval 'use Net::DBus::Reactor;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus::Reactor' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus::Reactor' failed with the error: $@.",
-			code	=>	38,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	else
-	{
-		# Good, record it as loaded.
-		$self->_net_dbus_reactor_loaded(1);
-		print "Net::DBus::Reactor loaded.\n";
-	}
-	
-	return (0);
-}
-
-# This loads in 'Net::DBus::RemoteObject' on call.
-sub _load_net_dbus_remoteobject
-{
-	my $self=shift;
-	
-	eval 'use Net::DBus::RemoteObject;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus::RemoteObject' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus::RemoteObject' failed with the error: $@.",
-			code	=>	41,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	else
-	{
-		# Good, record it as loaded.
-		$self->_net_dbus_remoteobject_loaded(1);
-		print "Net::DBus::RemoteObject loaded.\n";
-	}
-	
-	return (0);
-}
-
-# This loads in 'Net::DBus::RemoteService' on call.
-sub _load_net_dbus_remoteservice
-{
-	my $self=shift;
-	
-	eval 'use Net::DBus::RemoteService;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus::RemoteService' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus::RemoteService' failed with the error: $@.",
-			code	=>	39,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	else
-	{
-		# Good, record it as loaded.
-		$self->_net_dbus_remoteservice_loaded(1);
-		print "Net::DBus::RemoteService loaded.\n";
-	}
-	
-	return (0);
-}
-
-# This loads in 'Net::DBus::Service' on call.
-sub _load_net_dbus_service
-{
-	my $self=shift;
-	
-	eval 'use Net::DBus::Service;';
-	if ($@)
-	{
-		$self->Alert->error({
-			fatal	=>	1,
-			title	=>	"'AN::Tools' tried to load the 'Net::DBus::Service' module but it does not seem to be available.",
-			message	=>	"Loading the perl module 'Net::DBus::Service' failed with the error: $@.",
-			code	=>	37,
-			file	=>	"$THIS_FILE",
-			line	=>	__LINE__
-		});
-		return (undef);
-	}
-	else
-	{
-		# Good, record it as loaded.
-		$self->_net_dbus_service_loaded(1);
-		print "Net::DBus::Service loaded.\n";
-	}
-	
-	return (0);
-}
-
 ### Contributed by Shaun Fryer and Viktor Pavlenko by way of TPM.
 # This takes a string with double-colon seperators and divides on those
 # double-colons to create a hash reference where each element is a hash key.
@@ -752,90 +462,6 @@ sub _math_bigint_loaded
 	$self->{LOADED}{'Math::BigInt'}=$set if defined $set;
 	
 	return ($self->{LOADED}{'Math::BigInt'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::Exporter module has been loaded.
-sub _net_dbus_exporter_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::Exporter'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::Exporter'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::Dbus module has been loaded.
-sub _net_dbus_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::Object module has been loaded.
-sub _net_dbus_object_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::Object'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::Object'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::Reactor module has been loaded.
-sub _net_dbus_reactor_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::Reactor'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::Reactor'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::RemoteObject module has been loaded.
-sub _net_dbus_remoteobject_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::RemoteObject'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::RemoteObject'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::RemoteService module has been loaded.
-sub _net_dbus_remoteservice_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::RemoteService'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::RemoteService'});
-}
-
-# This simply sets and/or returns the internal variable that records when the
-# Net::DBus::Service module has been loaded.
-sub _net_dbus_service_loaded
-{
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
-	
-	$self->{LOADED}{'Net::DBus::Service'}=$set if defined $set;
-	
-	return ($self->{LOADED}{'Net::DBus::Service'});
 }
 
 1;

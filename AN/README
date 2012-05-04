@@ -16,24 +16,6 @@ IO::Handle
   needs to make a system call, it uses the IO::Handle method to create the
   filehandle. This is a core module and most systems should have it by default.
 
-Net::DBus
-Net::DBus::Service
-Net::DBus::Reactor
-Net::DBus::Object
-Net::DBus::Binding::Connection*
-
-  AN::Tools uses Net::DBus to run it's server component. Whenever AN::Tools
-  loads, it checks to see if the AN::Tools DBus server is running. If it is
-  not, it starts it. This server is used, amoung other things, to watch the
-  log file's size and trigger maintenance on log file when needed. Likewise,
-  all logging is sent to this server for writting to the log file. It also acts
-  as a server for AN::Tools based application to easily provide server
-  functions. An example would be how AN::Backup uses this server to track and
-  trigger backup jobs.
-  
-  * 'Net::DBus::Binding::Connection' is used when you specify a specific DBus
-  address to use instead of using the 'system' message bus.
-
 Fcntl
 
   When AN::Tools::Log wants to spool off the top of a log file to create space,
