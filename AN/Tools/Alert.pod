@@ -24,6 +24,18 @@ This module provides access to error handling methods.
   	file		=>	"$THIS_FILE",
   	line		=>	__LINE__
   });
+  
+  # Trigger a translatable fatal error.
+  $an->Alert->error({
+  	fatal		=>	1,
+  	title		=>	"err_0001",	# Something went: [#!var!0!#]
+  	title_args	=>	["$boom"],
+  	message		=>	"err_0002",	# Details on what went [#!var!0!#]: #!var!1!#
+  	message_args	=>	["$boom", "$reason"]
+  	code		=>	<some integer representing what went boom>,
+  	file		=>	"$THIS_FILE",
+  	line		=>	__LINE__
+  });
 
 =head1 DESCRIPTION
 
@@ -152,12 +164,22 @@ This is the line in the file where the warning was triggered.
   	line		=>	__LINE__
   });
   
-  # The alternative, short-form of calling this method is:
-  $an->Alert->error(1, "Something went boom", "Details on what went boom", <some integer representing what went boom>, "$THIS_FILE", __LINE__);
+  # The alternative, short-form of calling this method is by using a simple
+  # array of arguments. Arguments are expected in this order:
+  # 1. Fatal
+  # 2. Title
+  # 3. Title arguments (used when C<title> is a word key)
+  # 4. Message body
+  # 5. Message argumens (used when C<message> is a word key)
+  # 6. Error code. When C<message> is a C<error_####> word key and this is
+  #    blank, the digit from the key is used as the error code.
+  # 7. The name of the file triggering the error.
+  # 8. The line number from the file triggering the error.
+  $an->Alert->error(1, "Something went boom", "", "Details on what went boom", "", <some integer representing what went boom>, "$THIS_FILE", __LINE__);
 
 =head3 Details
 
-This method handles errors via the module. It actually expects the 'title' and 'message' to be word keys, but that isn't built yet (Madi!). When it does, it will also accept the usual 'title_var' and 'message_var' array references.
+This method handles errors via the module. The 'title' and 'message' can be translatable word keys (in the format 'w*_d*', like 'error_0001') or a raw string. If the title or message do not match the expected key string, the string will be treated as a raw message and will be recorded as-is.
 
 This method takes several parameters. 
 
@@ -175,11 +197,19 @@ If set to 0, the error will simply print to the error message to STDOUT and retu
 
 =head4 C<title>
 
-This is the short title (title key, eventually) of the error message.
+This is a short "Title" used for the alert message. If it's detected as a key, C<title_args> will be consulted and the two will be used to translate the title. If the string is not a key, it will be recorded as-is.
+
+=head4 C<title_args>
+
+This is an array reference containing the arguments to feed into the C<title> string when translating a word key.
 
 =head4 C<message>
 
-This is the full error message (text key, eventually) of the warning message.
+This is the alert message body. If it's detected as a key, C<message_args> will be consulted and the two will be used to translate the title. If the string is not a key, it will be recorded as-is.
+
+=head4 C<message_args>
+
+This is an array reference containing the arguments to feed into the C<message> string when translating a word key.
 
 =head4 C<code>
 
@@ -343,7 +373,7 @@ A method used by AN::Tools tried to call 'rename' on a file and failed. Exactly 
 
 =head2 C<36>
 
-free
+The 'AN::Tools::String' module's 'get()' was passed a string with a '#!var!x!#' replacement key without an array reference containing the replacement keys. This would trigger an infinite loop and is thus a fatal error.
 
 =head2 C<37>
 
@@ -407,7 +437,7 @@ Other modules in the AN::Tools suite:
 
 =head1 LICENSE
 
- Copyright (c) 2009 Alteeve's Niche!. All rights reserved.
+ Copyright (c) 2012 Alteeve's Niche!. All rights reserved.
  This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut

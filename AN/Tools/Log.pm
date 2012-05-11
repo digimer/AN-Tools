@@ -61,33 +61,33 @@ sub check
 	# Do my checks.
 	my $size=0;
 	my $cycle_needed=0;
-	print "$THIS_FILE ".__LINE__."; Log file: [$log_file]\n";
+# 	print "$THIS_FILE ".__LINE__."; Log file: [$log_file]\n";
 	if (-e $log_file)
 	{
 		# File exists, check it's byte size.
-		print "$THIS_FILE ".__LINE__."; Log file exists, checking it's size.\n";
+# 		print "$THIS_FILE ".__LINE__."; Log file exists, checking it's size.\n";
 		if (-l $log_file)
 		{
 			# Symlink, use lstat
-			print "$THIS_FILE ".__LINE__."; Log file is a symlink, using 'lstat'.\n";
+# 			print "$THIS_FILE ".__LINE__."; Log file is a symlink, using 'lstat'.\n";
 			($size)=(lstat $log_file)[7];
 		}
 		elsif (-f $log_file)
 		{
 			# Normal file, use 'stat'
-			print "$THIS_FILE ".__LINE__."; Log file is normal, using 'stat'.\n";
+# 			print "$THIS_FILE ".__LINE__."; Log file is normal, using 'stat'.\n";
 			($size)=(stat $log_file)[7];
 		}
 	}
 	else
 	{
-		print "$THIS_FILE ".__LINE__."; Log file doesn't exist.\n";
+# 		print "$THIS_FILE ".__LINE__."; Log file doesn't exist.\n";
 	}
-	print "$THIS_FILE ".__LINE__."; I read the size as: [$size] (max allowed size is: [".$an->Log->cycle_size()."])\n";
+# 	print "$THIS_FILE ".__LINE__."; I read the size as: [$size] (max allowed size is: [".$an->Log->cycle_size()."])\n";
 	if ($size >= $an->Log->cycle_size())
 	{
 		# The file is too large, cycle/archive it.
-		print "$THIS_FILE ".__LINE__."; Log file size exceeds maximum, initiating 'cycle' method.\n";
+# 		print "$THIS_FILE ".__LINE__."; Log file size exceeds maximum, initiating 'cycle' method.\n";
 		$cycle_needed=1;
 	}
 	
@@ -249,7 +249,7 @@ sub file
 	my $self=shift;
 	my $set=shift if defined $_[0];
 	
-	print "$THIS_FILE ".__LINE__."; In AN::Log->file()\n";
+# 	print "$THIS_FILE ".__LINE__."; In AN::Log->file()\n";
 	
 	# This just makes the code more consistent.
 	my $an=$self->parent;
@@ -258,7 +258,7 @@ sub file
 	$an->Alert->_set_error;
 	
 	# Check and set if needed.
-	print "$THIS_FILE ".__LINE__."; Set: [$set]\n" if $set;
+# 	print "$THIS_FILE ".__LINE__."; Set: [$set]\n" if $set;
 	if ($set)
 	{
 		my ($dir, $file)=($set=~/(.*)\/(.*?)$/);
@@ -304,7 +304,7 @@ sub file
 		$self->{LOG_FILE}=$set;
 	}
 	
-	print "$THIS_FILE ".__LINE__."; Returning: [$self->{LOG_FILE}]\n";
+# 	print "$THIS_FILE ".__LINE__."; Returning: [$self->{LOG_FILE}]\n";
 	return ($self->{LOG_FILE});
 }
 
@@ -623,7 +623,7 @@ sub level
 	my $an=$self->parent;
 	$an->Alert->_set_error;
 	
-	if ($set =~ /\D/)
+	if ((defined $set) && ($set =~ /\D/))
 	{
 		$an->Alert->error({
 			fatal	=>	1,
@@ -699,16 +699,7 @@ sub entry
 	###       waits for it to be released.
 	
 	# Setup my variables.
-	my $string="";
-	my $log_level=0;
-	my $file="";
-	my $line="";
-	my $title_key="";
-	my $title_vars="";
-	my $message_key="";
-	my $message_vars="";
-	my $language=$an->default_language;
-	my $filehandle=$an->Log->get_handle;
+	my ($string, $log_level, $file, $line, $title_key, $title_vars, $message_key, $message_vars, $language, $filehandle);
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
@@ -722,8 +713,9 @@ sub entry
 		$title_vars	=ref($param->{title_vars}) eq "ARRAY" 	? $param->{title_vars} : "";
 		$message_key	=$param->{message_key} 			? $param->{message_key} : "";
 		$message_vars	=ref($param->{message_vars}) eq "ARRAY" ? $param->{message_vars} : "";
-		$language	=$param->{language} 			? $param->{language} : "";
-		$filehandle	=$param->{filehandle} 			? $param->{filehandle} : "";
+		$language	=$param->{language} 			? $param->{language} : $an->default_language;
+		$filehandle	=$param->{filehandle} 			? $param->{filehandle} : $an->Log->get_handle;
+# 		print "$THIS_FILE ".__LINE__."; File: [$file], line: [$line]\n";
 	}
 	else
 	{
@@ -735,8 +727,9 @@ sub entry
 		$title_vars	=defined $_[3] ? $_[3] : "";
 		$message_key	=defined $_[4] ? $_[4] : "";
 		$message_vars	=defined $_[5] ? $_[5] : "";
-		$language	=defined $_[6] ? $_[6] : "";
-		$filehandle	=defined $_[7] ? $_[7] : "";
+		$language	=defined $_[6] ? $_[6] : $an->default_language;
+		$filehandle	=defined $_[7] ? $_[7] : $an->Log->get_handle;
+# 		print "$THIS_FILE ".__LINE__."; File: [$file], line: [$line]\n";
 	}
 	
 	# Return if the log level of the message is less than the current
@@ -746,6 +739,28 @@ sub entry
 	# Check to see if it's time to cycle the log file and, if so, do the
 	# cycle.
 	$an->Log->check();
+	
+	# Create the log string.
+	my $title=$an->String->get({
+		key		=>	$title_key,
+		variable	=>	$title_vars,
+		language	=>	$language,
+		filehandle	=>	$filehandle,
+	});
+	my $message=$an->String->get({
+		key		=>	$message_key,
+		variable	=>	$message_vars,
+		language	=>	$language,
+		filehandle	=>	$filehandle,
+	});
+	# Get the current data and time.
+	my ($now_date, $now_time)=$an->Get->date_and_time();
+	
+	$string="$now_date $now_time - $file \@ $line: [ $title ] - $message";
+
+	# Write the entry
+# 	print "$THIS_FILE ".__LINE__."; string: [$string]\n";
+	print $filehandle $string, "\n";
 	
 	# MADI: Have this return the exact string written to the log, if any.
 	return($string);

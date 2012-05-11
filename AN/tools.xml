@@ -20,6 +20,17 @@ This is the AN::Tools master 'words' file.
 	<!-- Internal module words -->
 		<key name="an_0000">AN!Tools RDF</key>
 		<key name="an_0001">AN!Tools Rapid Development Framework</key>
+		<key name="an_0002">Fatal Error</key>
+		<key name="an_0003">Error</key>
+		<key name="an_0004">no title</key>
+		<key name="an_0005">no message</key>
+		<key name="an_0006">unknown file</key>
+		<key name="an_0007">
+-=] #!var!4!# #!var!0!# - #!var!1!# - #!var!2!# at #!var!3!# [=-
+
+#!var!5!#
+		</key>
+		<key name="an_0008">Exiting.</key>
 	</lang>
 	
 	<!-- 日本語 -->
@@ -33,5 +44,10 @@ This is the AN::Tools master 'words' file.
 	<!-- Internal module words -->
 		<key name="an_0000">AN!Tools RDF</key>
 		<key name="an_0001">AN!Tools; すぱやい。進展。機構。</key>
+		<key name="an_0002">重大エラー</key>
+		<key name="an_0003">エラー</key>
+		<key name="an_0004">タイトルでわありません</key>
+		<key name="an_0005">メッセージはありません</key>
+		<key name="an_0006">不明なファイル</key>
 	</lang>
 </words>

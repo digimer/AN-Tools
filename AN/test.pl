@@ -24,7 +24,7 @@ BEGIN
 	use_ok('AN::Tools', 0.0.001);
 }
 
-# Test the main module object.e
+# Test the main module object.
 # my $an=AN::Tools->new({String=>{force_utf8=>1}});
 my $an=AN::Tools->new();
 like($an, qr/^AN::Tools=HASH\(0x\w+\)$/, "AN::Tools object appears valid.");
@@ -79,5 +79,9 @@ require_ok("AN/t/String.t");
 ### Test AN::Tools::Log
 print "Testing AN::Tools::Log\n";
 require_ok("AN/t/Log.t");
+
+### test AN::Tools::Get
+print "Testing AN::Tools::Get\n";
+require_ok("AN/t/Get.t");
 
 exit 0;

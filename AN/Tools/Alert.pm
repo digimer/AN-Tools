@@ -47,54 +47,82 @@ sub error
 	my $param=shift;
 	
 	# Clear any prior errors.
-	$self->_set_error;
+# 	$self->_set_error;
 	my $an=$self->parent;
 	
 	# Setup default values
-	my $fatal=1;
-	my $title="";
-	my $message="";
-	my $code=1;
-	my $file="";
-	my $line=0;
+	my ($fatal, $title, $title_args, $message, $message_args, $code, $file, $line);
 	
 	# See if I am getting parameters is a hash reference or directly as
 	# element arrays.
 	if (ref($param))
 	{
 		# Called via a hash ref, good.
-		$fatal  =$param->{fatal}   ? $param->{fatal}   : 1;
-		$title  =$param->{title}   ? $param->{title}   : "no title";
-		$message=$param->{message} ? $param->{message} : "no message";
-		$code   =$param->{code}    ? $param->{code}    : 1;
-		$file	=$param->{file}    ? $param->{file}    : "unknown file";
-		$line	=$param->{line}    ? $param->{line}    : 0;
+		$fatal  	=$param->{fatal}	? $param->{fatal}	: 1;
+		$title  	=$param->{title}	? $param->{title}	: $an->String->get({key=>"an_0004"});
+		$title_args	=$param->{title_args}	? $param->{title_args}	: "";
+		$message	=$param->{message}	? $param->{message}	: $an->String->get({key=>"an_0005"});
+		$message_args	=$param->{message_args}	? $param->{message_args} : "";
+		$code   	=$param->{code}		? $param->{code}	: 1;
+		$file		=$param->{file}		? $param->{file}	: $an->String->get({key=>"an_0006"});
+		$line		=$param->{line}		? $param->{line}	: "";
 	}
 	else
 	{
 		# Called directly.
-		$fatal  =$param;
-		$title  =shift;
-		$message=shift;
-		$code   =shift;
-		$file	=shift;
-		$line	=shift;
+		$fatal		=$param ? $param : 1;
+		$title		=shift;
+		$title_args	=shift;
+		$message	=shift;
+		$message_args	=shift;
+		$code		=shift;
+		$file		=shift;
+		$line		=shift;
+	}
+	
+	# If the 'code' is empty and 'message' is "error_\d+", strip that code
+	# off and use it as the error code.
+	if ((not $code) && ($message =~ /error_(\d+)/))
+	{
+		$code=$1;
+	}
+	
+	# If the title is a key, translate it.
+	if ($title =~ /^\w+_\d+$/)
+	{
+		$title=$an->String->get({
+			key		=>	$title,
+			variables	=>	$title_args,
+		});
+	}
+	
+	# If the message is a key, translate it.
+	if ($message =~ /^\w+_\d+$/)
+	{
+		$message=$an->String->get({
+			key		=>	$message,
+			variables	=>	$message_args,
+		});
 	}
 	
 	# Set my error string
-	my $heading=$fatal ? "Fatal Error" : "Non-Fatal Error";
-	my $error="-=] $code - $heading [=-\n";
-	$error.="-=] In file: [$file], at line: [".$an->Readable->comma($line)."].\n";
-	$error.="-=] $title [=-\n";
-	$error.="$message\n";
+	my $fatal_heading=$fatal ? $an->String->get({key=>"an_0002"}) : $an->String->get({key=>"an_0003"});
+	my $readable_line=$an->Readable->comma($line);
+	my $error="\n".$an->String->get({
+		key		=>	"an_0007",
+		variable	=>	[$code, $fatal_heading, $file, $readable_line, $title, $message],
+	})."\n\n";
+	# Set the internal error flags
 	$self->_set_error($error);
 	$self->_set_error_code($code);
+	# Append "exiting" to the error string if it is fatal.
 	if ($fatal)
 	{
 		# Don't append this unless I really am exiting.
-		$error.="Exiting.";
+		$error.=$an->String->get({key=>"an_0008"})."\n";
 	}
-	
+	# Don't actually die, but do print the error, if fatal errors have been
+	# globally disabled (as is done in the tests).
 	if ($self->no_fatal_errors == 0)
 	{
 		print "$error\n" if not $self->no_fatal_errors;

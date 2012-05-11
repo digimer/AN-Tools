@@ -29,6 +29,8 @@ $ENV{'PERL_UNICODE'}=1;
 # $an->method).
 use AN::Tools::Alert;
 use AN::Tools::Check;
+use AN::Tools::Convert;
+use AN::Tools::Get;
 use AN::Tools::Log;
 use AN::Tools::Math;
 use AN::Tools::Readable;
@@ -45,6 +47,8 @@ sub new
 		HANDLE				=>	{
 			ALERT				=>	AN::Tools::Alert->new(),
 			CHECK				=>	AN::Tools::Check->new(),
+			CONVERT				=>	AN::Tools::Convert->new(),
+			GET				=>	AN::Tools::Get->new(),
 			LOG				=>	AN::Tools::Log->new(),
 			MATH				=>	AN::Tools::Math->new(),
 			READABLE			=>	AN::Tools::Readable->new(),
@@ -76,6 +80,8 @@ sub new
 	# to talk to other sibling modules.
 	$self->Alert->parent($self);
 	$self->Check->parent($self);
+	$self->Convert->parent($self);
+	$self->Get->parent($self);
 	$self->Log->parent($self);
 	$self->Math->parent($self);
 	$self->Readable->parent($self);
@@ -112,18 +118,28 @@ sub new
 		
 		### AN::Tools::Log parameters
 		# Set the log file.
-		$self->Log->file		($param->{'log'}{file}) 		if defined $param->{'log'}{file};
-		$self->Log->cycle_size		($param->{'log'}{cycle_size}) 		if defined $param->{'log'}{cycle_size};
-		$self->Log->archives		($param->{'log'}{archives}) 		if defined $param->{'log'}{archives};
-		$self->Log->compression		($param->{'log'}{compression}) 		if defined $param->{'log'}{compression};
-		$self->Log->compression_switches($param->{'log'}{compression_switches}) if defined $param->{'log'}{compression_switches};
-		$self->Log->compression_suffix	($param->{'log'}{compression_suffix}) 	if defined $param->{'log'}{compression_suffix};
-		$self->Log->chomp_head		($param->{'log'}{chomp_head}) 		if defined $param->{'log'}{chomp_head};
-		$self->Log->chomp_head_buffer	($param->{'log'}{chomp_head_buffer}) 	if defined $param->{'log'}{chomp_head_buffer};
+		$self->Log->file		($param->{'Log'}{file}) 		if defined $param->{'Log'}{file};
+		$self->Log->level		($param->{'Log'}{level}) 		if defined $param->{'Log'}{level};
+		$self->Log->cycle_size		($param->{'Log'}{cycle_size}) 		if defined $param->{'Log'}{cycle_size};
+		$self->Log->archives		($param->{'Log'}{archives}) 		if defined $param->{'Log'}{archives};
+		$self->Log->compression		($param->{'Log'}{compression}) 		if defined $param->{'Log'}{compression};
+		$self->Log->compression_switches($param->{'Log'}{compression_switches}) if defined $param->{'Log'}{compression_switches};
+		$self->Log->compression_suffix	($param->{'Log'}{compression_suffix}) 	if defined $param->{'Log'}{compression_suffix};
+		$self->Log->chomp_head		($param->{'Log'}{chomp_head}) 		if defined $param->{'Log'}{chomp_head};
+		$self->Log->chomp_head_buffer	($param->{'Log'}{chomp_head_buffer}) 	if defined $param->{'Log'}{chomp_head_buffer};
 		
 		### AN::Tools::String parameters
 		# Force UTF-8.
 		$self->String->force_utf8	($param->{String}{force_utf8}) 		if defined $param->{String}{force_utf8};
+		# Read in the user's words.
+		$self->String->read_words({file=>$param->{String}{read_words}{file}}) 	if defined $param->{String}{read_words}{file};
+		
+		### AN::Tools::Get parameters
+		$an->Get->use_24h		($param->{'Get'}{use_24h})		if defined $param->{'Get'}{use_24h};
+		$an->Get->say_am		($param->{'Get'}{say_am})		if defined $param->{'Get'}{say_am};
+		$an->Get->say_pm		($param->{'Get'}{say_pm})		if defined $param->{'Get'}{say_pm};
+		$an->Get->date_seperator	($param->{'Get'}{date_seperator})	if defined $param->{'Get'}{date_seperator};
+		$an->Get->time_seperator	($param->{'Get'}{time_seperator})	if defined $param->{'Get'}{time_seperator};
 	}
 	
 	# Call methods that need to be loaded at invocation of the module.
@@ -181,6 +197,24 @@ sub Check
 	my $self=shift;
 	
 	return ($self->{HANDLE}{CHECK});
+}
+
+# Makes my handle to AN::Tools::Convert clearer when using this module to access
+# it's methods.
+sub Convert
+{
+	my $self=shift;
+	
+	return ($self->{HANDLE}{CONVERT});
+}
+
+# Makes my handle to AN::Tools::Get clearer when using this module to access
+# it's methods.
+sub Get
+{
+	my $self=shift;
+	
+	return ($self->{HANDLE}{GET});
 }
 
 # This is the method used to access the main hash reference that all

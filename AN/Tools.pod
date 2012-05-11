@@ -45,11 +45,11 @@ Tell AN::Tools::Readable to translate between byte sizes and human readable size
 
 =item C<Log::file>
 
-Tell AN::Tools::Log what file to use for logging purposes. The default is to use: [C</var/log/an_tools.log>]. This must be a fully defined directory path and file name. When archiving is used, the file name is appended with a sequential integer. When compression is also used, the compression suffix is appended after the sequence number. The format is: [C<{Log}{file}='/path/to/file'>].
+Tell AN::Tools::Log what file to use for logging purposes. The default is to use: [C</var/log/an/an_tools.log>]. This must be a fully defined directory path and file name. When archiving is used, the file name is appended with a sequential integer. When compression is also used, the compression suffix is appended after the sequence number. The format is: [C<{Log}{file}='/path/to/file'>].
 
 =item C<Log::cycle_size>
 
-Tell AN::Tools::Log what size the log file is allowed to grow to. If set to C<0> then no limit is set. The default is: [C<10M>] (10 mibibyte unless base10 is in use in which case it is 10 megabyte). If you wish to set a specific byte size, pass this option a raw integer or use a suffix like 'MiB' or 'MB' to bypass the 'base2' value. Please be aware that the log file will not necessarily be cycled at exactly this size but instead this size plus the remainder of the log entry that pushed the size beyond this value. What happens to the log file depends on what 'archive' is set to. The format is: [C<{Log}{cycle_size}='#_bytes|human_readable_size'>].
+Tell AN::Tools::Log what size the log file is allowed to grow to. If set to C<0> then no limit is set. The default is: [C<10M>] (10 mibibytes unless base10 is in use in which case it is 10 megabytes). If you wish to set a specific byte size, pass this option a raw integer or use a suffix like 'MiB' or 'MB' to bypass the 'base2' value. Please be aware that the log file will not necessarily be cycled at exactly this size but instead this size plus the remainder of the log entry that pushed the size beyond this value. What happens to the log file depends on what 'archive' is set to. The format is: [C<{Log}{cycle_size}='#_bytes|human_readable_size'>].
 
 =item C<Log::archives>
 
@@ -270,6 +270,10 @@ Other modules in the AN::Tools suite:
 
 =item AN::Tools::Check
 
+=item AN::Tools::Convert
+
+=item AN::Tools::Get
+
 =item AN::Tools::Log
 
 =item AN::Tools::Math
@@ -284,7 +288,7 @@ Other modules in the AN::Tools suite:
 
 =head1 LICENSE
 
- Copyright (c) 2009 Alteeve's Niche!. All rights reserved.
+ Copyright (c) 2012 Alteeve's Niche!. All rights reserved.
  This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut

@@ -88,10 +88,10 @@ sub get
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$key=$param->{key} if $param->{key};
-		$vars=$param->{variable} if $param->{variable};
-		$lang=$param->{language} if $param->{language};
-		$hash=$param->{hash} if $param->{hash};
+		$key=	$param->{key} 		if $param->{key};
+		$vars=	$param->{variable} 	if $param->{variable};
+		$lang=	$param->{language} 	if $param->{language};
+		$hash=	$param->{hash} 		if $param->{hash};
 	}
 	else
 	{
@@ -168,6 +168,21 @@ sub get
 	# indenting of the '</key>' field in the words XML file when printing
 	# to the command line.
 	$string=~s/\n(\s+)$//;
+	
+	# Make sure that if the string has '#!var!x!#', that 'vars' is an array
+	# reference. If it isn't, it would trigger an infinite loop later.
+	if (($string =~ /#!var!\d+!#/) && (ref($vars) ne "ARRAY"))
+	{
+		$an->Alert->error({
+			fatal	=>	1,
+			title	=>	"Missing Variables",
+			message	=>	"The 'AN::Tools::String' module's 'get()' was passed a string with a '#!var!x!#' replacement key without an array reference containing the replacement keys. This would trigger an infinite loop and is thus a fatal error.\n",
+			code	=>	36,
+			file	=>	"$THIS_FILE",
+			line	=>	__LINE__
+		});
+		return (undef);
+	}
 	
 	# Substitute in any variables if needed.
 	if ($vars)
@@ -551,11 +566,18 @@ sub _process
 	# Start looping through the passed string until all the replacement
 	# keys are gone.
 	my $i=0;
+	my $limit=$an->_error_limit;
+	$limit=6;
+# 	print "Error limit: [$limit]\n";
+# 	print "$i: $param->{string}\n";
 	while ( $param->{string} =~ /#!(.+?)!#/ )
 	{
 		# Substitute 'word' keys, but without 'vars'. This has to be
 		# first! 'protect' will catch 'word' keys, because no where
 		# else are they allowed.
+		print __LINE__."; string: [$param->{string}]\n";
+		print __LINE__."; language: [$param->{language}]\n";
+		print __LINE__."; hash: [$param->{hash}]\n";
 		$param->{string}=$an->String->_insert_word({
 			  string	=>	$param->{string},
 			  language	=>	$param->{language},
@@ -572,7 +594,7 @@ sub _process
 			string	=>	$param->{string},
 		});
 		
-		die "Infinite loop detected while processing the string: [$param->{string}], exiting.\n" if $i > $an->_error_limit;
+		die "Infinite loop detected while processing the string: [$param->{string}], exiting.\n" if $i > $limit;
 		$i++;
 	}
 	
