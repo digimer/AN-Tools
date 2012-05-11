@@ -699,7 +699,7 @@ sub entry
 	###       waits for it to be released.
 	
 	# Setup my variables.
-	my ($string, $log_level, $file, $line, $title_key, $title_vars, $message_key, $message_vars, $language, $filehandle);
+	my ($string, $log_level, $file, $line, $title_key, $title_vars, $message_key, $message_vars, $language, $filehandle, $raw);
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
@@ -715,7 +715,7 @@ sub entry
 		$message_vars	=ref($param->{message_vars}) eq "ARRAY" ? $param->{message_vars} : "";
 		$language	=$param->{language} 			? $param->{language} : $an->default_language;
 		$filehandle	=$param->{filehandle} 			? $param->{filehandle} : $an->Log->get_handle;
-# 		print "$THIS_FILE ".__LINE__."; File: [$file], line: [$line]\n";
+		$raw		=$param->{raw}				? $param->{raw} : "";
 	}
 	else
 	{
@@ -729,7 +729,7 @@ sub entry
 		$message_vars	=defined $_[5] ? $_[5] : "";
 		$language	=defined $_[6] ? $_[6] : $an->default_language;
 		$filehandle	=defined $_[7] ? $_[7] : $an->Log->get_handle;
-# 		print "$THIS_FILE ".__LINE__."; File: [$file], line: [$line]\n";
+		$raw		=defined $_[8] ? $_[8] : "";
 	}
 	
 	# Return if the log level of the message is less than the current
@@ -740,23 +740,33 @@ sub entry
 	# cycle.
 	$an->Log->check();
 	
-	# Create the log string.
-	my $title=$an->String->get({
-		key		=>	$title_key,
-		variable	=>	$title_vars,
-		language	=>	$language,
-		filehandle	=>	$filehandle,
-	});
-	my $message=$an->String->get({
-		key		=>	$message_key,
-		variable	=>	$message_vars,
-		language	=>	$language,
-		filehandle	=>	$filehandle,
-	});
 	# Get the current data and time.
 	my ($now_date, $now_time)=$an->Get->date_and_time();
 	
-	$string="$now_date $now_time - $file \@ $line: [ $title ] - $message";
+	# If 'raw' is set, just write to the file handle. Otherwise, parse the
+	# entry.
+	if ($raw)
+	{
+		$string="$now_date $now_time\n----\n$raw\n----\n";
+	}
+	else
+	{
+		# Create the log string.
+		my $title=$an->String->get({
+			key		=>	$title_key,
+			variable	=>	$title_vars,
+			language	=>	$language,
+			filehandle	=>	$filehandle,
+		});
+		my $message=$an->String->get({
+			key		=>	$message_key,
+			variable	=>	$message_vars,
+			language	=>	$language,
+			filehandle	=>	$filehandle,
+		});
+		
+		$string="$now_date $now_time - $file \@ $line: [ $title ] - $message";
+	}
 
 	# Write the entry
 # 	print "$THIS_FILE ".__LINE__."; string: [$string]\n";

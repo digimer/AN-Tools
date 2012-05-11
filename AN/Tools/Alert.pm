@@ -121,6 +121,13 @@ sub error
 		# Don't append this unless I really am exiting.
 		$error.=$an->String->get({key=>"an_0008"})."\n";
 	}
+	
+	# Write a copy of the error to the log.
+	$an->Log->entry({
+		level		=>	1,
+		raw		=>	$error,
+	});
+	
 	# Don't actually die, but do print the error, if fatal errors have been
 	# globally disabled (as is done in the tests).
 	if ($self->no_fatal_errors == 0)

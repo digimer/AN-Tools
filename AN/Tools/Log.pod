@@ -59,6 +59,13 @@ Below are the detailed usage instructions for the methods provided by this modul
   	  language	=>	'jp',
   });
   $other_log->close;
+  
+  # If you have a formatted string, you can pass it directly and no parsing
+  # will be done at all. The string will be recorded as-is.
+  $an->Log->entry({
+  	level		=>	1,
+	raw		=>	"This is how I died.",
+  });
 
 =head3 Details
 
