@@ -3,16 +3,17 @@ package AN::Tools::Check;
 use strict;
 use warnings;
 
-our $VERSION="0.1.001";
-my $THIS_FILE="Check.pm";
+our $VERSION  = "0.1.001";
+my $THIS_FILE = "Check.pm";
 
 
 # The constructor
 sub new
 {
-	my $class=shift;
+	#print "$THIS_FILE ".__LINE__."; In AN::Check->new()\n";
+	my $class = shift;
 	
-	my $self={
+	my $self  = {
 	};
 	
 	bless $self, $class;
@@ -25,10 +26,10 @@ sub new
 # parent.
 sub parent
 {
-	my $self=shift;
-	my $parent=shift;
+	my $self   = shift;
+	my $parent = shift;
 	
-	$self->{HANDLE}{TOOLS}=$parent if $parent;
+	$self->{HANDLE}{TOOLS} = $parent if $parent;
 	
 	return ($self->{HANDLE}{TOOLS});
 }
@@ -38,9 +39,8 @@ sub parent
 # arguments and simply returns '1' when complete.
 sub _os
 {
-	my $self=shift;
-	
-	my $an=$self->parent;
+	my $self = shift;
+	my $an   = $self->parent;
 	
 	if (lc($^O) eq "linux")
 	{

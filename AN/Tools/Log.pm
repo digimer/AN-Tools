@@ -3,12 +3,13 @@ package AN::Tools::Log;
 use strict;
 use warnings;
 
-our $VERSION="0.1.001";
-my $THIS_FILE="Log.pm";
+our $VERSION  = "0.1.001";
+my $THIS_FILE = "Log.pm";
 
 
 sub new
 {
+	#print "$THIS_FILE ".__LINE__."; In AN::Log->new()\n";
 	my $class=shift;
 	
 	my $self={
@@ -37,10 +38,10 @@ sub new
 # parent.
 sub parent
 {
-	my $self=shift;
-	my $parent=shift;
+	my $self   = shift;
+	my $parent = shift;
 	
-	$self->{HANDLE}{TOOLS}=$parent if $parent;
+	$self->{HANDLE}{TOOLS} = $parent if $parent;
 	
 	return ($self->{HANDLE}{TOOLS});
 }
@@ -49,18 +50,18 @@ sub parent
 # cycle_log().
 sub check
 {
-	my $self=shift;
+	my $self = shift;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an = $self->parent;
 	$an->Alert->_set_error;
 	
 	# Either get the passed in log file or use the default one.
-	my $log_file=$_[0] ? shift : $an->Log->file;
+	my $log_file = $_[0] ? shift : $an->Log->file;
 	
 	# Do my checks.
-	my $size=0;
-	my $cycle_needed=0;
+	my $size         = 0;
+	my $cycle_needed = 0;
 # 	print "$THIS_FILE ".__LINE__."; Log file: [$log_file]\n";
 	if (-e $log_file)
 	{
@@ -88,7 +89,7 @@ sub check
 	{
 		# The file is too large, cycle/archive it.
 # 		print "$THIS_FILE ".__LINE__."; Log file size exceeds maximum, initiating 'cycle' method.\n";
-		$cycle_needed=1;
+		$cycle_needed = 1;
 	}
 	
 	return ($cycle_needed);
@@ -97,10 +98,10 @@ sub check
 # This handles cycling the log file plus archiving when enabled.
 sub _cycle
 {
-	my $self=shift;
+	my $self = shift;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	# Lock the log file. This is done in an 'eval' because I don't load
@@ -110,9 +111,12 @@ sub _cycle
 	###       the same file and one does a LOCK_EX. Does the other fh just
 	###       wait?
 	$an->_load_fcntl() if not $an->_fcntl_loaded();
-	my $log_fh=$an->Log->get_handle();
+	my $log_fh = $an->Log->get_handle();
 	eval 'flock($log_fh,\'LOCK_EX\')';
-	if ($@) { die "Failed to get an exclusive lock on the log file: [".$an->Log->file()."]. Error was: $!\n"; }
+	if ($@)
+	{
+		die "Failed to get an exclusive lock on the log file: [".$an->Log->file()."]. Error was: $!\n";
+	}
 	
 	# Make sure the file pointer is at the end of the file in the case of
 	# something been written to the file while it was being locked.
@@ -129,10 +133,10 @@ sub _cycle
 		# archives out of the way. Start the loop down by one because I
 		# will clobber the last entry regardless of whether it exists
 		# or not.
-		for (my $i=($an->Log->archives-1); $i>=1; $i--)
+		for (my $i = ($an->Log->archives - 1); $i >= 1; $i--)
 		{
-			my $from=$an->Log->file.".$i.".$an->Log->compression_suffix();
-			my $to=$an->Log->file.".".($i+1).".".$an->Log->compression_suffix();
+			my $from = $an->Log->file.".$i.".$an->Log->compression_suffix();
+			my $to   = $an->Log->file.".".($i+1).".".$an->Log->compression_suffix();
 			if (-e $from)
 			{
 				rename($from, $to) || $an->Alert->error({
@@ -159,11 +163,11 @@ sub _cycle
 			### This solution was provided by Shlomi Fish
 			### <shlomif@iglu.org.il> via TPM. Thanks!
 			# Chomp some lines off the head of the log file.
-			my $log_file=$an->Log->file();
-			my ($dir, $file)=($log_file=~/(.*)\/(.*?)$/);
+			my $log_file     = $an->Log->file();
+			my ($dir, $file) = ($log_file =~ /(.*)\/(.*?)$/);
 			
 			# Setup the name of the temporary log file.
-			my $write_file="$dir/.$file";
+			my $write_file   = "$dir/.$file";
 			
 			my $in=IO::Handle->new();
 			open ($in, "<$log_file") || $an->Alert->error({
@@ -193,7 +197,7 @@ sub _cycle
 			
 			# Do a buffered read from the current log file into my
 			# temporary log file.
-			my $buffer_length=$an->Log->chomp_head_buffer();;
+			my $buffer_length = $an->Log->chomp_head_buffer();
 			my $buffer;
 			while (read($in, $buffer, $buffer_length))
 			{
@@ -217,8 +221,8 @@ sub _cycle
 		{
 			# Blank the whole log file.
 			$an->_load_io_handle() if not $an->_io_handle_loaded();
-			my $write=IO::Handle->new;
-			my $shell_call=">".$an->Log->file();
+			my $write      = IO::Handle->new;
+			my $shell_call = ">".$an->Log->file();
 			open ($write, $shell_call) || $an->Alert->error({
 				fatal	=>	1,
 				title	=>	"'AN::Tools::Log->_cycle()' was not able to open the log file for writing.",
@@ -233,7 +237,10 @@ sub _cycle
 	
 	# Remove the lock on the log.
 	eval 'flock($log_fh,\'LOCK_UN\')';
-	if ($@) { die "Failed to release the lock on the log file: [".$an->Log->file()."]. Error was: $!\n"; }
+	if ($@)
+	{
+		die "Failed to release the lock on the log file: [".$an->Log->file()."]. Error was: $!\n";
+	}
 # 	unlink $self->{LOG_LOCK_FILE};
 	
 	return (1);
@@ -246,24 +253,26 @@ sub _cycle
 # ensure that the directory the file will be created in exists.
 sub file
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-# 	print "$THIS_FILE ".__LINE__."; In AN::Log->file()\n";
+	#print "$THIS_FILE ".__LINE__."; In AN::Log->file()\n";
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an = $self->parent;
 	
 	# Clear any prior errors as I may set one here.
 	$an->Alert->_set_error;
 	
 	# Check and set if needed.
-# 	print "$THIS_FILE ".__LINE__."; Set: [$set]\n" if $set;
+	#print "$THIS_FILE ".__LINE__."; Set: [$set]\n" if $set;
 	if ($set)
 	{
-		my ($dir, $file)=($set=~/(.*)\/(.*?)$/);
+		my ($dir, $file) = ($set =~ /(.*)\/(.*?)$/);
+		#print "$THIS_FILE ".__LINE__."; dir: [$dir], file: [$file]\n" if $set;
 		if (not -d $dir)
 		{
+			#print "$THIS_FILE ".__LINE__."; dir: [$dir] doesn't exist.\n" if $set;
 			# Directory doesn't exist.
 			$an->Alert->error({
 				fatal	=>	1,
@@ -278,6 +287,7 @@ sub file
 		if (not -w $dir)
 		{
 			# Directory doesn't exist.
+			print "$THIS_FILE ".__LINE__."; dir: [$dir] not writeable\n" if $set;
 			$an->Alert->error({
 				fatal	=>	1,
 				title	=>	"Directory Not Writeable",
@@ -301,7 +311,7 @@ sub file
 			});
 			return (undef);
 		}
-		$self->{LOG_FILE}=$set;
+		$self->{LOG_FILE} = $set;
 	}
 	
 # 	print "$THIS_FILE ".__LINE__."; Returning: [$self->{LOG_FILE}]\n";
@@ -340,13 +350,13 @@ sub chomp_head
 		# The user may be blanking this.
 		if ($set)
 		{
-			$self->{LOG_CHOMP_HEAD}=$set;
+			$self->{LOG_CHOMP_HEAD} = $set;
 		}
 		else
 		{
 			# Disable. This will blank the log file when it reaches
 			# it's maximum size.
-			$self->{LOG_CHOMP_HEAD}=0;
+			$self->{LOG_CHOMP_HEAD} = 0;
 		}
 	}
 	
@@ -357,10 +367,10 @@ sub chomp_head
 # the real log file for writting into the temporary log file.
 sub chomp_head_buffer
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if (defined $set)
@@ -384,13 +394,13 @@ sub chomp_head_buffer
 		# The user may be blanking this.
 		if ($set)
 		{
-			$self->{CHOMP_HEAD_BUFFER}=$set;
+			$self->{CHOMP_HEAD_BUFFER} = $set;
 		}
 		else
 		{
 			# Disable. This will blank the log file when it reaches
 			# it's maximum size.
-			$self->{CHOMP_HEAD_BUFFER}=0;
+			$self->{CHOMP_HEAD_BUFFER} = 0;
 		}
 	}
 	
@@ -402,10 +412,10 @@ sub chomp_head_buffer
 # program has sane defaults set.
 sub compression_switches
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if (defined $set)
@@ -413,12 +423,12 @@ sub compression_switches
 		# The user may be blanking this.
 		if ($set)
 		{
-			$self->{LOG_COMORESSION_SWITCHES}=$set;
+			$self->{LOG_COMORESSION_SWITCHES} = $set;
 		}
 		else
 		{
 			# Disable.
-			$self->{LOG_COMORESSION_SWITCHES}="";
+			$self->{LOG_COMORESSION_SWITCHES} = "";
 		}
 	}
 	
@@ -430,10 +440,10 @@ sub compression_switches
 # used.
 sub compression_suffix
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if (defined $set)
@@ -441,12 +451,12 @@ sub compression_suffix
 		# The user may be blanking this.
 		if ($set)
 		{
-			$self->{LOG_COMORESSION_SUFFIX}=$set;
+			$self->{LOG_COMORESSION_SUFFIX} = $set;
 		}
 		else
 		{
 			# Disable.
-			$self->{LOG_COMORESSION_SUFFIX}="";
+			$self->{LOG_COMORESSION_SUFFIX} = "";
 		}
 	}
 	
@@ -457,10 +467,10 @@ sub compression_suffix
 # log files. If unset, no compression is done.
 sub compression
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if (defined $set)
@@ -496,12 +506,12 @@ sub compression
 				});
 				return (undef);
 			}
-			$self->{LOG_COMPRESSION}=$set;
+			$self->{LOG_COMPRESSION} = $set;
 		}
 		else
 		{
 			# Disable.
-			$self->{LOG_COMPRESSION}="";
+			$self->{LOG_COMPRESSION} = "";
 		}
 	}
 	
@@ -531,9 +541,9 @@ sub cycle_size
 		# passed size is valid because AN::Tools::Readable already does
 		# all the checks. Instead, I will just check for an error state
 		# and die if error code 7, 8 or 10 are returned.
-		my $fatal_was=$an->Alert->no_fatal_errors();
+		my $fatal_was           = $an->Alert->no_fatal_errors();
 		$an->Alert->no_fatal_errors({set=>1});
-		$self->{LOG_CYCLE_SIZE}=$an->Readable->hr_to_bytes($set);
+		$self->{LOG_CYCLE_SIZE} = $an->Readable->hr_to_bytes($set);
 		$an->Alert->no_fatal_errors({set=>$fatal_was});
 		if ($an->error_code)
 		{
@@ -558,10 +568,10 @@ sub cycle_size
 # This sets or returns the number of log archives to keep.
 sub archives
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if ((defined $set) && ($set =~ /\D/))
@@ -579,7 +589,7 @@ sub archives
 		return (undef);
 	}
 	
-	$self->{LOG_ARCHIVES}=$set if defined $set;
+	$self->{LOG_ARCHIVES} = $set if defined $set;
 	
 	print "$THIS_FILE ".__LINE__."; Returning: [$self->{LOG_ARCHIVES}]\n";
 	return ($self->{LOG_ARCHIVES});
@@ -588,10 +598,10 @@ sub archives
 # This sets or returns whether short time stamps are used in log entires.
 sub short_timestamp
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if ((defined $set) && (($set ne "0") && ($set ne "1")))
@@ -609,7 +619,7 @@ sub short_timestamp
 		return (undef);
 	}
 	
-	$self->{SHORT_TIMESTAMP}=$set if defined $set;
+	$self->{SHORT_TIMESTAMP} = $set if defined $set;
 	
 	return ($self->{SHORT_TIMESTAMP});
 }
@@ -617,10 +627,10 @@ sub short_timestamp
 # This sets or returns the log level.
 sub level
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	if ((defined $set) && ($set =~ /\D/))
@@ -638,7 +648,7 @@ sub level
 		return (undef);
 	}
 	
-	$self->{LOG_LEVEL}=$set if defined $set;
+	$self->{LOG_LEVEL} = $set if defined $set;
 	
 	return ($self->{LOG_LEVEL});
 }
@@ -647,9 +657,9 @@ sub level
 # the file handle.
 sub get_handle
 {
-	my $self=shift;
+	my $self = shift;
 	
-	my $an=$self->parent;
+	my $an   = $self->parent;
 	$an->Alert->_set_error;
 	
 	# Make sure that IO::Handle is loaded.
@@ -661,8 +671,8 @@ sub get_handle
 	# Open the log file if it's not already open.
 	if (not $self->{LOG_HANDLE})
 	{
-		my $write=IO::Handle->new;
-		my $shell_call=$an->Log->file();
+		my $write      = IO::Handle->new;
+		my $shell_call = $an->Log->file();
 		open ($write, ">>", $shell_call) || $an->Alert->error({
 			fatal	=>	1,
 			title	=>	"'AN::Tools::Log->get_handle()' was not able to open the log file for writing.",
@@ -673,7 +683,7 @@ sub get_handle
 		});
 		# Make the log handle "hot" (turn off buffering).
 		$write->autoflush(1);
-		$self->{LOG_HANDLE}=$write;
+		$self->{LOG_HANDLE} = $write;
 	}
 	
 	return ($self->{LOG_HANDLE});
@@ -683,10 +693,10 @@ sub get_handle
 # appropriate.
 sub entry
 {
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	
-	my $an=$self->parent;
+	my $an    = $self->parent;
 	$an->Alert->_set_error;
 	
 	# Check if the log file lock is available. If so, wait until it's gone.
@@ -706,30 +716,30 @@ sub entry
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$log_level	=$param->{log_level} 			? $param->{log_level} : 0;
-		$file		=$param->{file} 			? $param->{file} : "";
-		$line		=$param->{line} 			? $param->{line} : "";
-		$title_key	=$param->{title_key} 			? $param->{title_key} : "";
-		$title_vars	=ref($param->{title_vars}) eq "ARRAY" 	? $param->{title_vars} : "";
-		$message_key	=$param->{message_key} 			? $param->{message_key} : "";
-		$message_vars	=ref($param->{message_vars}) eq "ARRAY" ? $param->{message_vars} : "";
-		$language	=$param->{language} 			? $param->{language} : $an->default_language;
-		$filehandle	=$param->{filehandle} 			? $param->{filehandle} : $an->Log->get_handle;
-		$raw		=$param->{raw}				? $param->{raw} : "";
+		$log_level    = $param->{log_level}                    ? $param->{log_level}    : 0;
+		$file         = $param->{file}                         ? $param->{file}         : "";
+		$line         = $param->{line}                         ? $param->{line}         : "";
+		$title_key    = $param->{title_key}                    ? $param->{title_key}    : "";
+		$title_vars   = ref($param->{title_vars}) eq "ARRAY"   ? $param->{title_vars}   : "";
+		$message_key  = $param->{message_key}                  ? $param->{message_key}  : "";
+		$message_vars = ref($param->{message_vars}) eq "ARRAY" ? $param->{message_vars} : "";
+		$language     = $param->{language}                     ? $param->{language}     : $an->default_language;
+		$filehandle   = $param->{filehandle}                   ? $param->{filehandle}   : $an->Log->get_handle;
+		$raw          = $param->{raw}                          ? $param->{raw}          : "";
 	}
 	else
 	{
 		# Values passed directly.
-		$log_level	=defined $param ? $param : 0;
-		$file		=defined $_[0] ? $_[0] : "";
-		$line		=defined $_[1] ? $_[1] : "";
-		$title_key	=defined $_[2] ? $_[2] : "";
-		$title_vars	=defined $_[3] ? $_[3] : "";
-		$message_key	=defined $_[4] ? $_[4] : "";
-		$message_vars	=defined $_[5] ? $_[5] : "";
-		$language	=defined $_[6] ? $_[6] : $an->default_language;
-		$filehandle	=defined $_[7] ? $_[7] : $an->Log->get_handle;
-		$raw		=defined $_[8] ? $_[8] : "";
+		$log_level    = defined $param ? $param : 0;
+		$file         = defined $_[0]  ? $_[0]  : "";
+		$line         = defined $_[1]  ? $_[1]  : "";
+		$title_key    = defined $_[2]  ? $_[2]  : "";
+		$title_vars   = defined $_[3]  ? $_[3]  : "";
+		$message_key  = defined $_[4]  ? $_[4]  : "";
+		$message_vars = defined $_[5]  ? $_[5]  : "";
+		$language     = defined $_[6]  ? $_[6]  : $an->default_language;
+		$filehandle   = defined $_[7]  ? $_[7]  : $an->Log->get_handle;
+		$raw          = defined $_[8]  ? $_[8]  : "";
 	}
 	
 	# Return if the log level of the message is less than the current
@@ -741,31 +751,31 @@ sub entry
 	$an->Log->check();
 	
 	# Get the current data and time.
-	my ($now_date, $now_time)=$an->Get->date_and_time();
+	my ($now_date, $now_time) = $an->Get->date_and_time();
 	
 	# If 'raw' is set, just write to the file handle. Otherwise, parse the
 	# entry.
 	if ($raw)
 	{
-		$string="$now_date $now_time\n----\n$raw\n----\n";
+		$string = "$now_date $now_time\n----\n$raw\n----";
 	}
 	else
 	{
 		# Create the log string.
-		my $title=$an->String->get({
+		my $title   = $an->String->get({
 			key		=>	$title_key,
 			variable	=>	$title_vars,
 			language	=>	$language,
 			filehandle	=>	$filehandle,
 		});
-		my $message=$an->String->get({
+		my $message = $an->String->get({
 			key		=>	$message_key,
 			variable	=>	$message_vars,
 			language	=>	$language,
 			filehandle	=>	$filehandle,
 		});
 		
-		$string="$now_date $now_time - $file \@ $line: [ $title ] - $message";
+		$string     = "$now_date $now_time - $file \@ $line: [ $title ] - $message";
 	}
 
 	# Write the entry

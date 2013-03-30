@@ -3,15 +3,16 @@ package AN::Tools::Readable;
 use strict;
 use warnings;
 
-our $VERSION="0.1.001";
-my $THIS_FILE="Readable.pm";
+our $VERSION  = "0.1.001";
+my $THIS_FILE = "Readable.pm";
 
 
 sub new
 {
-	my $class=shift;
+	#print "$THIS_FILE ".__LINE__."; In AN::Readable->new()\n";
+	my $class = shift;
 	
-	my $self={
+	my $self  = {
 		USE_BASE_2	=>	1,
 	};
 	
@@ -25,10 +26,10 @@ sub new
 # parent.
 sub parent
 {
-	my $self=shift;
-	my $parent=shift;
+	my $self   = shift;
+	my $parent = shift;
 	
-	$self->{HANDLE}{TOOLS}=$parent if $parent;
+	$self->{HANDLE}{TOOLS} = $parent if $parent;
 	
 	return ($self->{HANDLE}{TOOLS});
 }
@@ -36,18 +37,18 @@ sub parent
 # Return and/or set whether Base 2 or Base 10 notation is in use.
 sub base2
 {
-	my $self=shift;
-	my $set=shift;
+	my $self = shift;
+	my $set  = shift;
 	
 	if (defined $set)
 	{
 		if (($set == 0) || ($set == 1))
 		{
-			$self->{USE_BASE_2}=$set;
+			$self->{USE_BASE_2} = $set;
 		}
 		else
 		{
-			my $an=$self->parent;
+			my $an = $self->parent;
 			$an->Alert->error({
 				fatal	=>	1,
 				title	=>	"Invalid argument",
@@ -66,11 +67,11 @@ sub base2
 # the decimal place. This method doesn't take a parameter hash reference.
 sub comma
 {
-	my $self=shift;
-	my $number=shift;
+	my $self   = shift;
+	my $number = shift;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an = $self->parent;
 	
 	# Clear any prior errors as I may set one here.
 	$an->Alert->_set_error;
@@ -79,18 +80,18 @@ sub comma
 	return undef if not defined $number;
 	
 	# Strip out any existing commas.
-	$number=~s/,//g;
-	$number=~s/^\+//g;
+	$number =~ s/,//g;
+	$number =~ s/^\+//g;
 	
 	# Split on the left-most period.
-	my ($whole, $decimal)=split/\./, $number, 2;
-	$whole="" if not defined $whole;
-	$decimal="" if not defined $decimal;
+	my ($whole, $decimal) = split/\./, $number, 2;
+	$whole   = "" if not defined $whole;
+	$decimal = "" if not defined $decimal;
 	
 	# Now die if either number has a non-digit character in it.
 	if (($whole=~/\D/) || ($decimal=~/\D/))
 	{
-		my $an=$self->parent;
+		my $an = $self->parent;
 		$an->Alert->error({
 			fatal	=>	1,
 			title	=>	"Invalid Character in Argument",
@@ -103,12 +104,12 @@ sub comma
 		return (undef);
 	}
 	
-	local($_)=$whole ? $whole : "";
+	local($_) = $whole ? $whole : "";
 	
 	1 while s/^(-?\d+)(\d{3})/$1,$2/;
-	$whole=$_;
+	$whole = $_;
 	
-	my $return=$decimal ? "$whole.$decimal" : $whole;
+	my $return = $decimal ? "$whole.$decimal" : $whole;
 	
 	return ($return);
 }
@@ -116,39 +117,42 @@ sub comma
 # Takes a number of seconds and turns it into d/h/m/s
 sub time
 {
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	return undef if not defined $param;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an = $self->parent;
 	
 	# Clear any prior errors as I may set one here.
 	$an->Alert->_set_error;
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
-	my $time=0;
+	my $time = 0;
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$time=$param->{'time'} ? $param->{'time'} : 0;
+		$time = $param->{'time'} ? $param->{'time'} : 0;
 	}
 	else
 	{
 		# Values passed directly.
-		$time=$param ? $param : 0;
+		$time = $param ? $param : 0;
 	}
 	
-	my $old_time=$time;
-	my $float=0;
-	my $sign=$time=~/^-/ ? "-" : "";
-	$time=~s/^-//;
-	$time=~s/,//g;
-	if ($time=~/\./) { ($time, $float)=split/\./, $time, 2; }
+	my $old_time =  $time;
+	my $float    =  0;
+	my $sign     =  $time =~ /^-/ ? "-" : "";
+	$time        =~ s/^-//;
+	$time        =~ s/,//g;
+	if ($time=~/\./)
+	{
+		($time, $float) = split/\./, $time, 2;
+	}
 	
 	# Die if either the 'time' or 'float' has a non-digit character in it.
-	if (($time=~/\D/) || ($float=~/\D/))
+	if (($time =~ /\D/) || ($float =~ /\D/))
 	{
 		$an->Alert->error({
 			fatal	=>	1,
@@ -163,57 +167,63 @@ sub time
 		return (undef);
 	}
 	
-	my $seconds=$time % 60;
-	my $minutes=($time - $seconds) / 60;
-	my $rem_min=$minutes % 60;
-	my $hours=($minutes - $rem_min) / 60;
-	my $rem_hours=$hours % 24;
-	my $days=($hours - $rem_hours) / 24;
-	my $rem_days=$days % 7;
-	my $weeks=($days - $rem_days) / 7;
+	my $seconds   = $time % 60;
+	my $minutes   = ($time - $seconds) / 60;
+	my $rem_min   = $minutes % 60;
+	my $hours     = ($minutes - $rem_min) / 60;
+	my $rem_hours = $hours % 24;
+	my $days      = ($hours - $rem_hours) / 24;
+	my $rem_days  = $days % 7;
+	my $weeks     = ($days - $rem_days) / 7;
 
 	my $hr_time;
-	if ( $seconds < 1 )
+	if ($seconds < 1)
 	{
-		$hr_time=$float ? "0.${float}s" : "0s";
+		$hr_time = $float ? "0.${float}s" : "0s";
 	}
 	else
 	{
-		$hr_time=sprintf("%01d", $seconds);
-		if ( $float > 0 ) { $hr_time.=".".$float."s"; }
-		else { $hr_time.="s"; }
+		$hr_time = sprintf("%01d", $seconds);
+		if ( $float > 0 )
+		{
+			$hr_time .= ".".$float."s";
+		}
+		else
+		{
+			$hr_time.="s";
+		}
 	}
 	if ( $rem_min > 0 )
 	{
-		$hr_time=~s/ sec.$/s/;
-		$hr_time=sprintf("%01d", $rem_min)."m $hr_time";
+		$hr_time =~ s/ sec.$/s/;
+		$hr_time =  sprintf("%01d", $rem_min)."m $hr_time";
 	}
 	elsif (($hours > 0) || ($days > 0) || ($weeks > 0))
 	{
-		$hr_time="0m $hr_time";
+		$hr_time = "0m $hr_time";
 	}
 	if ( $rem_hours > 0 )
 	{
-		$hr_time=sprintf("%01d", $rem_hours)."h $hr_time";
+		$hr_time = sprintf("%01d", $rem_hours)."h $hr_time";
 	}
 	elsif (($days > 0) || ($weeks > 0))
 	{
-		$hr_time="0h $hr_time";
+		$hr_time = "0h $hr_time";
 	}
 	if ( $days > 0 )
 	{
-		$hr_time=sprintf("%01d", $rem_days)."d $hr_time";
+		$hr_time = sprintf("%01d", $rem_days)."d $hr_time";
 	}
 	elsif ($weeks > 0)
 	{
-		$hr_time="0d $hr_time";
+		$hr_time = "0d $hr_time";
 	}
 	if ( $weeks > 0 )
 	{
-		$weeks=$an->Readable->comma($weeks);
-		$hr_time=$weeks."w $hr_time";
+		$weeks   = $an->Readable->comma($weeks);
+		$hr_time = $weeks."w $hr_time";
 	}
-	$hr_time=$sign ? $sign.$hr_time : $hr_time;
+	$hr_time = $sign ? $sign.$hr_time : $hr_time;
 	
 	return ($hr_time);
 }
@@ -221,55 +231,58 @@ sub time
 # Takes a raw number of bytes (whole integer).
 sub bytes_to_hr
 {
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	return undef if not defined $param;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an = $self->parent;
 	
 	# Clear any prior errors as I may set one here.
 	$an->Alert->_set_error;
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
-	my $size=0;
+	my $size = 0;
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$size=$param->{'bytes'} ? $param->{'bytes'} : 0;
+		$size = $param->{'bytes'} ? $param->{'bytes'} : 0;
 	}
 	else
 	{
 		# Values passed directly.
-		$size=$param ? $param : 0;
+		$size = $param ? $param : 0;
 	}
 	
 	# Expand exponential numbers.
 	if ($size =~ /(\d+)e\+(\d+)/)
 	{
-		my $base=$1;
-		my $exp=$2;
-		$size=$base;
-		for (1..$exp) { $size.="0"; }
+		my $base = $1;
+		my $exp  = $2;
+		$size    = $base;
+		for (1..$exp)
+		{
+			$size .= "0";
+		}
 	}
 	
 	# Setup my variables.
-	my $suffix="";
-	my $hr_size=$size;
+	my $suffix  = "";
+	my $hr_size = $size;
 	
 	# Store and strip the sign
-	my $sign="";
+	my $sign = "";
 	if ( $hr_size =~ /^-/ )
 	{
-		$sign="-";
-		$hr_size=~s/^-//;
+		$sign    =  "-";
+		$hr_size =~ s/^-//;
 	}
-	$hr_size=~s/,//g;
-	$hr_size=~s/^\+//g;
+	$hr_size =~ s/,//g;
+	$hr_size =~ s/^\+//g;
 	
 	# Die if either the 'time' or 'float' has a non-digit character in it.	
-	if ($hr_size=~/\D/)
+	if ($hr_size =~ /\D/)
 	{
 		$an->Alert->error({
 			fatal	=>	1,
@@ -287,125 +300,125 @@ sub bytes_to_hr
 	# Do the math.
 	if ($an->Readable->base2)
 	{
-		if ( $hr_size >= (2 ** 80) )
+		if ($hr_size >= (2 ** 80))
 		{
 			# Yebibyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (2 ** 80)));
-			$hr_size=$an->Readable->comma($hr_size);
-			$suffix="yib";
+			$hr_size = sprintf("%.3f", ($hr_size /= (2 ** 80)));
+			$hr_size = $an->Readable->comma($hr_size);
+			$suffix  = "yib";
 		}
-		elsif ( $hr_size >= (2 ** 70) )
+		elsif ($hr_size >= (2 ** 70))
 		{
 			# Zebibyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (2 ** 70)));
-			$suffix="zib";
+			$hr_size = sprintf("%.3f", ($hr_size /= (2 ** 70)));
+			$suffix  = "zib";
 		}
-		elsif ( $hr_size >= (2 ** 60) )
+		elsif ($hr_size >= (2 ** 60))
 		{
 			# Exbibyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (2 ** 60)));
-			$suffix="eib";
+			$hr_size = sprintf("%.3f", ($hr_size /= (2 ** 60)));
+			$suffix  = "eib";
 		}
-		elsif ( $hr_size >= (2 ** 50) )
+		elsif ($hr_size >= (2 ** 50))
 		{
 			# Pebibyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (2 ** 50)));
-			$suffix="pib";
+			$hr_size = sprintf("%.3f", ($hr_size /= (2 ** 50)));
+			$suffix  = "pib";
 		}
-		elsif ( $hr_size >= (2 ** 40) )
+		elsif ($hr_size >= (2 ** 40))
 		{
 			# Tebibyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (2 ** 40)));
-			$suffix="tib";
+			$hr_size = sprintf("%.2f", ($hr_size /= (2 ** 40)));
+			$suffix  = "tib";
 		}
-		elsif ( $hr_size >= (2 ** 30) )
+		elsif ($hr_size >= (2 ** 30))
 		{
 			# Gibibyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (2 ** 30)));
-			$suffix="gib";
+			$hr_size = sprintf("%.2f", ($hr_size /= (2 ** 30)));
+			$suffix  = "gib";
 		}
-		elsif ( $hr_size >= (2 ** 20) )
+		elsif ($hr_size >= (2 ** 20))
 		{
 			# Mebibyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (2 ** 20)));
-			$suffix="mib";
+			$hr_size = sprintf("%.2f", ($hr_size /= (2 ** 20)));
+			$suffix  = "mib";
 		}
-		elsif ( $hr_size >= (2 ** 10) )
+		elsif ($hr_size >= (2 ** 10))
 		{
 			# Kibibyte
-			$hr_size=sprintf("%.1f", ($hr_size /= (2 ** 10)));
-			$suffix="kib";
+			$hr_size = sprintf("%.1f", ($hr_size /= (2 ** 10)));
+			$suffix  = "kib";
 		}
 		else
 		{
-			$hr_size=$an->Readable->comma($hr_size);
-			$suffix="b";
+			$hr_size = $an->Readable->comma($hr_size);
+			$suffix  = "b";
 		}
 	}
 	else
 	{
-		if ( $hr_size >= (10 ** 24) )
+		if ($hr_size >= (10 ** 24))
 		{
 			# Yottabyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (10 ** 24)));
-			$hr_size=$an->Readable->comma($hr_size);
-			$suffix="yb";
+			$hr_size = sprintf("%.3f", ($hr_size /= (10 ** 24)));
+			$hr_size = $an->Readable->comma($hr_size);
+			$suffix  = "yb";
 		}
-		elsif ( $hr_size >= (10 ** 21) )
+		elsif ($hr_size >= (10 ** 21))
 		{
 			# Zettabyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (10 ** 21)));
-			$suffix="zb";
+			$hr_size = sprintf("%.3f", ($hr_size /= (10 ** 21)));
+			$suffix  = "zb";
 		}
-		elsif ( $hr_size >= (10 ** 18) )
+		elsif ($hr_size >= (10 ** 18))
 		{
 			# Exabyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (10 ** 18)));
-			$suffix="eb";
+			$hr_size = sprintf("%.3f", ($hr_size /= (10 ** 18)));
+			$suffix  = "eb";
 		}
-		elsif ( $hr_size >= (10 ** 15) )
+		elsif ($hr_size >= (10 ** 15))
 		{
 			# Petabyte
-			$hr_size=sprintf("%.3f", ($hr_size /= (10 ** 15)));
-			$suffix="pb";
+			$hr_size = sprintf("%.3f", ($hr_size /= (10 ** 15)));
+			$suffix  = "pb";
 		}
-		elsif ( $hr_size >= (10 ** 12) )
+		elsif ($hr_size >= (10 ** 12))
 		{
 			# Terabyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (10 ** 12)));
-			$suffix="tb";
+			$hr_size = sprintf("%.2f", ($hr_size /= (10 ** 12)));
+			$suffix  = "tb";
 		}
-		elsif ( $hr_size >= (10 ** 9) )
+		elsif ($hr_size >= (10 ** 9))
 		{
 			# Gigabyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (10 ** 9)));
-			$suffix="gb";
+			$hr_size = sprintf("%.2f", ($hr_size /= (10 ** 9)));
+			$suffix  = "gb";
 		}
-		elsif ( $hr_size >= (10 ** 6) )
+		elsif ($hr_size >= (10 ** 6))
 		{
 			# Megabyte
-			$hr_size=sprintf("%.2f", ($hr_size /= (10 ** 6)));
-			$suffix="mb";
+			$hr_size = sprintf("%.2f", ($hr_size /= (10 ** 6)));
+			$suffix  = "mb";
 		}
-		elsif ( $hr_size >= (10 ** 3) )
+		elsif ($hr_size >= (10 ** 3))
 		{
 			# Kilobyte
-			$hr_size=sprintf("%.1f", ($hr_size /= (10 ** 3)));
-			$suffix="kb";
+			$hr_size = sprintf("%.1f", ($hr_size /= (10 ** 3)));
+			$suffix  = "kb";
 		}
 		else
 		{
-			$hr_size=$an->Readable->comma($hr_size);
-			$suffix="b";
+			$hr_size = $an->Readable->comma($hr_size);
+			$suffix  = "b";
 		}
 	}
 	
 	# Restore the sign.
 	if ( $sign eq "-" )
 	{
-		$hr_size=$sign.$hr_size;
+		$hr_size = $sign.$hr_size;
 	}
-	$hr_size.=$suffix;
+	$hr_size .= $suffix;
 	
 	return($hr_size);
 }
@@ -414,49 +427,49 @@ sub bytes_to_hr
 # a base byte size as accurately as possible.
 sub hr_to_bytes
 {
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	return undef if not defined $param;
 	
-	my $an=$self->parent;
+	my $an = $self->parent;
 	$an->Alert->_set_error;
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
-	my $size=0;
-	my $type="";
+	my $size = 0;
+	my $type = "";
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$size=$param->{size} ? $param->{size} : 0;
-		$type=$param->{type} ? $param->{type} : 0;
+		$size = $param->{size} ? $param->{size} : 0;
+		$type = $param->{type} ? $param->{type} : 0;
 	}
 	else
 	{
 		# Values passed directly.
-		$size=$param ? $param : 0;
-		$type=$_[0] ? shift : "";
+		$size = $param ? $param : 0;
+		$type = $_[0]  ? shift  : "";
 	}
-	$size=~s/ //g;
-	$type=~s/ //g;
+	$size =~ s/ //g;
+	$type =~ s/ //g;
 	
 	# Store and strip the sign
-	my $sign="";
-	if ( $size =~ /^-/ )
+	my $sign = "";
+	if ($size =~ /^-/)
 	{
-		$sign="-";
-		$size=~s/^-//;
+		$sign =  "-";
+		$size =~ s/^-//;
 	}
-	$size=~s/,//g;
-	$size=~s/^\+//g;
+	$size =~ s/,//g;
+	$size =~ s/^\+//g;
 	
 	# If I don't have a passed type, see if there is a letter or letters
 	# after the size to hack off.
-	if ((not $type) && ($size=~/[a-zA-Z]$/))
+	if ((not $type) && ($size =~ /[a-zA-Z]$/))
 	{
-		($size, $type)=($size=~/^(.*\d)(\D+)/);
+		($size, $type) = ($size =~ /^(.*\d)(\D+)/);
 	}
-	$type=lc($type);
+	$type = lc($type);
 	
 	# Make sure that 'size' is now an integer or float.
 	if ($size !~ /\d+[\.\d+]?/)
@@ -475,13 +488,13 @@ sub hr_to_bytes
 	}
 	
 	# If 'type' is still blank, set it to 'b'.
-	$type="b" if not $type;
+	$type = "b" if not $type;
 	
 	# If the type is already bytes, make sure the size is an integer and
 	# return.
-	if ( $type eq "b" )
+	if ($type eq "b")
 	{
-		if ($size=~/\D/)
+		if ($size =~ /\D/)
 		{
 			$an->Alert->error({
 				fatal	=>	1,
@@ -499,23 +512,23 @@ sub hr_to_bytes
 	# Conversly, if the type is "Xb", make sure that we're running in
 	# Base10 notation. In either case, shorten the 'type' to just the first
 	# letter to make the next sanity check simpler.
-	my $prior_base2=$an->Readable->base2();
+	my $prior_base2 = $an->Readable->base2();
 	if ($type =~ /^(\w)ib$/)
 	{
 		# Make sure we're running in Base2.
-		$type=$1;
+		$type = $1;
 		$an->Readable->base2(1);
 	}
 	elsif ($type =~ /^(\w)b$/)
 	{
 		# Make sure we're running in Base2.
-		$type=$1;
+		$type = $1;
 		$an->Readable->base2(0);
 	}
 	
 	# Check if we have a valid '$type' and that 'Math::BigInt' is loaded,
 	# if the size is big enough to require it.
-	if (( $type eq "p" ) || ( $type eq "e" ) || ( $type eq "z" ) || ( $type eq "y" ))
+	if (($type eq "p") || ($type eq "e") || ($type eq "z") || ($type eq "y"))
 	{
 		# If this is a big size needing "Math::BigInt", check if it's loaded
 		# yet and load it, if not.
@@ -524,7 +537,7 @@ sub hr_to_bytes
 			$an->_load_math_bigint();
 		}
 	}
-	elsif (( $type ne "t" ) && ( $type ne "g" ) && ( $type ne "m" ) && ( $type ne "k" ))
+	elsif (($type ne "t") && ($type ne "g") && ($type ne "m") && ($type ne "k"))
 	{
 		# If we're here, we didn't match one of the large sizes or any
 		# of the other sizes, so die.
@@ -545,31 +558,31 @@ sub hr_to_bytes
 	my $bytes;
 	if ($an->Readable->base2)
 	{
-		if ( $type eq "y" ) { $bytes=Math::BigInt->new('2')->bpow('80')->bmul($size); }		# Yobibyte
-		elsif ( $type eq "z" ) { $bytes=Math::BigInt->new('2')->bpow('70')->bmul($size); }	# Zibibyte
-		elsif ( $type eq "e" ) { $bytes=Math::BigInt->new('2')->bpow('60')->bmul($size); }	# Exbibyte
-		elsif ( $type eq "p" ) { $bytes=Math::BigInt->new('2')->bpow('50')->bmul($size); }	# Pebibyte
-		elsif ( $type eq "t" ) { $bytes=($size*(2**40)) }					# Tebibyte
-		elsif ( $type eq "g" ) { $bytes=($size*(2**30)) }					# Gibibyte
-		elsif ( $type eq "m" ) { $bytes=($size*(2**20)) }					# Mebibyte
-		elsif ( $type eq "k" ) { $bytes=($size*(2**10)) }					# Kibibyte
+		if    ($type eq "y") { $bytes = Math::BigInt->new('2')->bpow('80')->bmul($size); }	# Yobibyte
+		elsif ($type eq "z") { $bytes = Math::BigInt->new('2')->bpow('70')->bmul($size); }	# Zibibyte
+		elsif ($type eq "e") { $bytes = Math::BigInt->new('2')->bpow('60')->bmul($size); }	# Exbibyte
+		elsif ($type eq "p") { $bytes = Math::BigInt->new('2')->bpow('50')->bmul($size); }	# Pebibyte
+		elsif ($type eq "t") { $bytes = ($size * (2 ** 40)) }					# Tebibyte
+		elsif ($type eq "g") { $bytes = ($size * (2 ** 30)) }					# Gibibyte
+		elsif ($type eq "m") { $bytes = ($size * (2 ** 20)) }					# Mebibyte
+		elsif ($type eq "k") { $bytes = ($size * (2 ** 10)) }					# Kibibyte
 	}
 	else
 	{
-		if ( $type eq "y" ) { $bytes=Math::BigInt->new('10')->bpow('24')->bmul($size); }	# Yottabyte
-		elsif ( $type eq "z" ) { $bytes=Math::BigInt->new('10')->bpow('21')->bmul($size); }	# Zettabyte
-		elsif ( $type eq "e" ) { $bytes=Math::BigInt->new('10')->bpow('18')->bmul($size); }	# Exabyte
-		elsif ( $type eq "p" ) { $bytes=Math::BigInt->new('10')->bpow('15')->bmul($size); }	# Petabyte
-		elsif ( $type eq "t" ) { $bytes=($size*(10**12)) }					# Terabyte
-		elsif ( $type eq "g" ) { $bytes=($size*(10**9)) }					# Gigabyte
-		elsif ( $type eq "m" ) { $bytes=($size*(10**6)) }					# Megabyte
-		elsif ( $type eq "k" ) { $bytes=($size*(10**3)) }					# Kilobyte
+		if    ($type eq "y") { $bytes = Math::BigInt->new('10')->bpow('24')->bmul($size); }	# Yottabyte
+		elsif ($type eq "z") { $bytes = Math::BigInt->new('10')->bpow('21')->bmul($size); }	# Zettabyte
+		elsif ($type eq "e") { $bytes = Math::BigInt->new('10')->bpow('18')->bmul($size); }	# Exabyte
+		elsif ($type eq "p") { $bytes = Math::BigInt->new('10')->bpow('15')->bmul($size); }	# Petabyte
+		elsif ($type eq "t") { $bytes = ($size * (10 ** 12)) }					# Terabyte
+		elsif ($type eq "g") { $bytes = ($size * (10 ** 9)) }					# Gigabyte
+		elsif ($type eq "m") { $bytes = ($size * (10 ** 6)) }					# Megabyte
+		elsif ($type eq "k") { $bytes = ($size * (10 ** 3)) }					# Kilobyte
 	}
 	
 	# Last, round off the byte size if it's a float.
-	if ( $bytes =~ /\./ )
+	if ($bytes =~ /\./)
 	{
-		$bytes=$an->Math->round({
+		$bytes = $an->Math->round({
 			number => $bytes,
 			places => 0
 		});

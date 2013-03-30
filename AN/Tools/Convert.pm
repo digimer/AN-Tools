@@ -3,15 +3,16 @@ package AN::Tools::Convert;
 use strict;
 use warnings;
 
-our $VERSION="0.1.001";
-my $THIS_FILE="Convert.pm";
+our $VERSION  = "0.1.001";
+my $THIS_FILE = "Convert.pm";
 
 
 sub new
 {
-	my $class=shift;
+	#print "$THIS_FILE ".__LINE__."; In AN::Convert->new()\n";
+	my $class = shift;
 	
-	my $self={
+	my $self  = {
 	};
 	
 	bless $self, $class;
@@ -24,10 +25,10 @@ sub new
 # parent.
 sub parent
 {
-	my $self=shift;
-	my $parent=shift;
+	my $self   = shift;
+	my $parent = shift;
 	
-	$self->{HANDLE}{TOOLS}=$parent if $parent;
+	$self->{HANDLE}{TOOLS} = $parent if $parent;
 	
 	return ($self->{HANDLE}{TOOLS});
 }

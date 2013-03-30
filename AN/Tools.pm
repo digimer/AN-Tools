@@ -11,16 +11,16 @@ package AN::Tools;
 
 BEGIN
 {
-	our $VERSION="0.1.001";
+	our $VERSION = "0.1.001";
 }
 
 use strict;
 use warnings;
-my $THIS_FILE="Tools.pm";
+my $THIS_FILE = "Tools.pm";
 
 # Setup for UTF-8 mode.
 use utf8;
-$ENV{'PERL_UNICODE'}=1;
+$ENV{'PERL_UNICODE'} = 1;
 
 # I intentionally don't use EXPORT, @ISA and the like because I want my
 # "subclass"es to be accessed in a somewhat more OO style. I know some may
@@ -40,10 +40,10 @@ use AN::Tools::String;
 # The constructor through which all other module's methods will be accessed.
 sub new
 {
-	my $class=shift;
-	my $param=shift;
-	
-	my $self={
+	#print "$THIS_FILE ".__LINE__."; In AN::Tools->new()\n";
+	my $class = shift;
+	my $param = shift;
+	my $self  = {
 		HANDLE				=>	{
 			ALERT				=>	AN::Tools::Alert->new(),
 			CHECK				=>	AN::Tools::Check->new(),
@@ -72,9 +72,11 @@ sub new
 	# Bless you!
 	bless $self, $class;
 	
+	print "$THIS_FILE ".__LINE__."<br />\n";
+	
 	# This isn't needed, but it makes the code below more consistent with
 	# and portable to other modules.
-	my $an=$self;
+	my $an = $self;
 	
 	# This gets handles to my other modules that the child modules will use
 	# to talk to other sibling modules.
@@ -87,21 +89,29 @@ sub new
 	$self->Readable->parent($self);
 	$self->Storage->parent($self);
 	$self->String->parent($self);
+	print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Check the operating system and set any OS-specific values.
 	$self->Check->_os;
+	print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Before I do anything, read in values from the 'DEFAULT::CONFIG_FILE'
 	# configuration file.
 	$an->Storage->read_conf($self->{DEFAULT}{CONFIG_FILE});
+	print "$THIS_FILE ".__LINE__."<br />\n";
+	
+	# I need to read the initial words early.
+	$self->String->read_words();
+	print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Now I setup my log file and it's path. If the log directory starts
 	# with the directory delimiter, I assume it is fully qualified and
 	# only attach the log file name as a suffix. Otherwise, I assume it is
 	# relative and start with the install directory.
-	my $directory_delimiter=$an->_directory_delimiter();
-	my $log_file=$an->data->{dir}{logs} =~ /^$directory_delimiter/ ? $an->data->{dir}{logs}.$an->data->{'log'}{file} : $an->data->{dir}{install}.$an->data->{dir}{logs}.$an->data->{'log'}{file};
+	my $directory_delimiter = $an->_directory_delimiter();
+	my $log_file            = $an->data->{dir}{logs} =~ /^$directory_delimiter/ ? $an->data->{dir}{logs}.$an->data->{'log'}{file} : $an->data->{dir}{install}.$an->data->{dir}{logs}.$an->data->{'log'}{file};
 	$an->Log->file($log_file);
+	print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Set passed parameters if needed.
 	if (ref($param) eq "HASH")
@@ -132,7 +142,7 @@ sub new
 		# Force UTF-8.
 		$self->String->force_utf8	($param->{String}{force_utf8}) 		if defined $param->{String}{force_utf8};
 		# Read in the user's words.
-		$self->String->read_words({file=>$param->{String}{read_words}{file}}) 	if defined $param->{String}{read_words}{file};
+		$self->String->read_words({file => $param->{String}{read_words}{file}}) if defined $param->{String}{read_words}{file};
 		
 		### AN::Tools::Get parameters
 		$an->Get->use_24h		($param->{'Get'}{use_24h})		if defined $param->{'Get'}{use_24h};
@@ -143,7 +153,7 @@ sub new
 	}
 	
 	# Call methods that need to be loaded at invocation of the module.
-	$self->String->read_words();
+	#$self->String->read_words();
 	
 	# Start the logger. This will create the log file if needed.
 # 	$an->Log->
@@ -155,12 +165,12 @@ sub new
 # processing word strings.
 sub default_language
 {
-	my $self=shift;
-	my $set=shift if defined $_[0];
+	my $self = shift;
+	my $set  = shift if defined $_[0];
 	
 	# This could be set before any word files are read, so no checks are
 	# done here.
-	$self->{DEFAULT}{LANGUAGE}=$set if $set;
+	$self->{DEFAULT}{LANGUAGE} = $set if $set;
 	
 	return ($self->{DEFAULT}{LANGUAGE});
 }
@@ -169,7 +179,7 @@ sub default_language
 # '$an->error' to be called, saving the caller typing.
 sub error
 {
-	my $self=shift;
+	my $self = shift;
 	return ($self->Alert->_error_string);
 }
 
@@ -177,7 +187,7 @@ sub error
 # '$an->error_code' to be called, saving the caller typing.
 sub error_code
 {
-	my $self=shift;
+	my $self = shift;
 	return ($self->Alert->_error_code);
 }
 
@@ -185,7 +195,7 @@ sub error_code
 # it's methods.
 sub Alert
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{ALERT});
 }
@@ -194,7 +204,7 @@ sub Alert
 # it's methods.
 sub Check
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{CHECK});
 }
@@ -203,7 +213,7 @@ sub Check
 # it's methods.
 sub Convert
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{CONVERT});
 }
@@ -212,7 +222,7 @@ sub Convert
 # it's methods.
 sub Get
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{GET});
 }
@@ -222,7 +232,7 @@ sub Get
 # variables and so forth.
 sub data
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{DATA});
 }
@@ -231,7 +241,7 @@ sub data
 # it's methods.
 sub Log
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{LOG});
 }
@@ -240,7 +250,7 @@ sub Log
 # it's methods.
 sub Math
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{MATH});
 }
@@ -249,7 +259,7 @@ sub Math
 # access it's methods.
 sub Readable
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{READABLE});
 }
@@ -258,7 +268,7 @@ sub Readable
 # access it's methods.
 sub Storage
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{STORAGE});
 }
@@ -267,7 +277,7 @@ sub Storage
 # access it's methods.
 sub String
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{HANDLE}{STRING});
 }
@@ -277,9 +287,9 @@ sub String
 # new string is to be created as a new hash key in the passed hash reference.
 sub _add_hash_reference
 {
-	my $self=shift;
-	my $href1=shift;
-	my $href2=shift;
+	my $self  = shift;
+	my $href1 = shift;
+	my $href2 = shift;
 	
 	for my $key (keys %$href2)
 	{
@@ -298,7 +308,7 @@ sub _add_hash_reference
 # array of directories to search for.
 sub _defaut_search_dirs
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{DEFAULT}{SEARCH_DIR});
 }
@@ -306,10 +316,10 @@ sub _defaut_search_dirs
 # This sets or receives the underlying operating system's directory delimiter.
 sub _directory_delimiter
 {
-	my ($self)=shift;
+	my ($self) = shift;
 	
 	# Pick up the passed in delimiter, if any.
-	$self->{OS_VALUES}{DIRECTORY_DELIMITER}=shift if $_[0];
+	$self->{OS_VALUES}{DIRECTORY_DELIMITER} = shift if $_[0];
 	
 	return ($self->{OS_VALUES}{DIRECTORY_DELIMITER});
 }
@@ -318,7 +328,7 @@ sub _directory_delimiter
 # against the value returned here and kills the program when reached.
 sub _error_limit
 {
-	my $self=shift;
+	my $self = shift;
 	
 	return ($self->{ERROR_LIMIT});
 }
@@ -327,10 +337,10 @@ sub _error_limit
 # Fcntl module has been loaded.
 sub _fcntl_loaded
 {
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
+	my $self = shift;
+	my $set  = $_[0] ? shift : undef;
 	
-	$self->{LOADED}{Fcntl}=$set if defined $set;
+	$self->{LOADED}{Fcntl} = $set if defined $set;
 	
 	return ($self->{LOADED}{Fcntl});
 }
@@ -342,21 +352,21 @@ sub _fcntl_loaded
 sub _get_hash_reference
 {
 	# 'href' is the hash reference I am working on.
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	
 	die "I didn't get a hash key string, so I can't pull hash reference pointer.\n" if ref($param->{key}) ne "HASH";
 	die "The hash key string: [$param->{key}] doesn't seem to be valid. It should be a string in the format 'foo::bar::baz'.\n" if $param->{key} !~ /::/;
 	
 	# Split up the keys.
-	my @keys=split /::/, $param->{key};
-	my $last_key=pop @keys;
+	my @keys     = split /::/, $param->{key};
+	my $last_key = pop @keys;
 	
 	# Re-order the array.
-	my $_chref=$self->data;
+	my $_chref   = $self->data;
 	foreach my $key (@keys)
 	{
-		$_chref=$_chref->{$key};
+		$_chref = $_chref->{$key};
 	}
 	
 	return ($_chref->{$last_key});
@@ -366,10 +376,10 @@ sub _get_hash_reference
 # IO::Handle module has been loaded.
 sub _io_handle_loaded
 {
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
+	my $self = shift;
+	my $set  = $_[0] ? shift : undef;
 	
-	$self->{LOADED}{'IO::Handle'}=$set if defined $set;
+	$self->{LOADED}{'IO::Handle'} = $set if defined $set;
 	
 	return ($self->{LOADED}{'IO::Handle'});
 }
@@ -377,7 +387,7 @@ sub _io_handle_loaded
 # This loads in 'Fcntl's 'flock' functions on call.
 sub _load_fcntl
 {
-	my $self=shift;
+	my $self = shift;
 	
 	print "'eval'ing Fcntl\n";
 	eval 'use Fcntl \':flock\';';
@@ -406,7 +416,7 @@ sub _load_fcntl
 # This loads the 'Math::BigInt' module.
 sub _load_io_handle
 {
-	my $self=shift;
+	my $self = shift;
 	
 	eval 'use IO::Handle;';
 	if ($@)
@@ -435,7 +445,7 @@ sub _load_io_handle
 # This loads the 'Math::BigInt' module.
 sub _load_math_bigint
 {
-	my $self=shift;
+	my $self = shift;
 	
 	eval 'use Math::BigInt;';
 	if ($@)
@@ -466,22 +476,25 @@ sub _load_math_bigint
 # double-colons to create a hash reference where each element is a hash key.
 sub _make_hash_reference
 {
-	my $self=shift;
-	my $href=shift;
-	my $key_string=shift;
-	my $value=shift;
+	my $self       = shift;
+	my $href       = shift;
+	my $key_string = shift;
+	my $value      = shift;
 	
-	if ($self->{CHOMP_ROOT}) { $key_string=~s/\w+:://; }
+	if ($self->{CHOMP_ROOT})
+	{
+		$key_string=~s/\w+:://;
+	}
 	
-	my @keys = split /::/, $key_string;
-	my $last_key = pop @keys;
-	my $_href = {};
-	$_href->{$last_key}=$value;
+	my @keys            = split /::/, $key_string;
+	my $last_key        = pop @keys;
+	my $_href           = {};
+	$_href->{$last_key} = $value;
 	while (my $key = pop @keys)
 	{
-		my $elem = {};
+		my $elem      = {};
 		$elem->{$key} = $_href;
-		$_href = $elem;
+		$_href        = $elem;
 	}
 	$self->_add_hash_reference($href, $_href);
 }
@@ -490,10 +503,10 @@ sub _make_hash_reference
 # Math::BigInt module has been loaded.
 sub _math_bigint_loaded
 {
-	my $self=shift;
-	my $set=$_[0] ? shift : undef;
+	my $self = shift;
+	my $set  = $_[0] ? shift : undef;
 	
-	$self->{LOADED}{'Math::BigInt'}=$set if defined $set;
+	$self->{LOADED}{'Math::BigInt'} = $set if defined $set;
 	
 	return ($self->{LOADED}{'Math::BigInt'});
 }

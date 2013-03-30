@@ -3,15 +3,16 @@ package AN::Tools::Math;
 use strict;
 use warnings;
 
-our $VERSION="0.1.001";
-my $THIS_FILE="Math.pm";
+our $VERSION  = "0.1.001";
+my $THIS_FILE = "Math.pm";
 
 
 sub new
 {
-	my $class=shift;
+	#print "$THIS_FILE ".__LINE__."; In AN::Math->new()\n";
+	my $class = shift;
 	
-	my $self={};
+	my $self  = {};
 	
 	bless $self, $class;
 	
@@ -23,10 +24,10 @@ sub new
 # parent.
 sub parent
 {
-	my $self=shift;
-	my $parent=shift;
+	my $self   = shift;
+	my $parent = shift;
 	
-	$self->{HANDLE}{TOOLS}=$parent if $parent;
+	$self->{HANDLE}{TOOLS} = $parent if $parent;
 	
 	return ($self->{HANDLE}{TOOLS});
 }
@@ -36,39 +37,39 @@ sub parent
 ### MADI: Does this handle "x.95" type rounding properly?
 sub round
 {
-	my $self=shift;
-	my $param=shift;
+	my $self  = shift;
+	my $param = shift;
 	
 	# This just makes the code more consistent.
-	my $an=$self->parent;
+	my $an    = $self->parent;
 	
 	# Clear any prior errors as I may set one here.
 	$an->Alert->_set_error;
 	
 	# Setup my numbers.
-	my $num=0;
-	my $places=0;
+	my $num    = 0;
+	my $places = 0;
 	
 	# Now see if the user passed the values in a hash reference or
 	# directly.
 	if (ref($param) eq "HASH")
 	{
 		# Values passed in a hash, good.
-		$num=$param->{number} ? $param->{number} : 0;
-		$places=$param->{places} ? $param->{places} : 0;
+		$num    = $param->{number} ? $param->{number} : 0;
+		$places = $param->{places} ? $param->{places} : 0;
 	}
 	else
 	{
 		# Values passed directly.
-		$num=$param;
-		$places=defined $_[0] ? shift : 0;
+		$num    = $param;
+		$places = defined $_[0] ? shift : 0;
 	}
 	
 	# Make a copy of the passed number that I can manipulate.
-	my $rounded_num=$num;
+	my $rounded_num = $num;
 	
 	# Take out any commas.
-	$rounded_num=~s/,//g;
+	$rounded_num =~ s/,//g;
 	
 	# If there is a decimal place in the number, do the smart math.
 	# Otherwise, just pad the number with the requested number of zeros
@@ -76,10 +77,10 @@ sub round
 	if ( $rounded_num =~ /\./ )
 	{
 		# Split up the number.
-		my ($real, $decimal)=split/\./, $rounded_num, 2;
+		my ($real, $decimal) = split/\./, $rounded_num, 2;
 		
 		# If there is anything other than one ',' and digits, error.
-		if (($real=~/\D/) || ($decimal=~/\D/))
+		if (($real =~ /\D/) || ($decimal =~ /\D/))
 		{
 			$an->Alert->error({
 				fatal	=>	1,
@@ -105,34 +106,34 @@ sub round
 		elsif ( length($decimal) < $places )
 		{
 			# Less, pad.
-			$rounded_num=sprintf("%.${places}f", $rounded_num);
+			$rounded_num = sprintf("%.${places}f", $rounded_num);
 		}
 		else
 		{
 			# Greater than; I need to round the number. Start by
 			# getting the number of places I need to round.
-			my $round_diff=length($decimal)-$places;
+			my $round_diff = length($decimal) - $places;
 			
 			# This keeps track of whether the next (left) digit
 			# needs to be incremented.
-			my $increase=0;
+			my $increase = 0;
 			
 			# Now loop the number of times needed to round to the
 			# requested number of places.
 			for (1..$round_diff)
 			{
 				# Reset 'increase'.
-				$increase=0;
+				$increase = 0;
 				
 				# Make sure I am dealing with a digit.
-				if ( $decimal =~ /(\d)$/ )
+				if ($decimal =~ /(\d)$/)
 				{
-					my $last_digit=$1;
-					$decimal=~s/$last_digit$//;
-					if ( $last_digit > 4 )
+					my $last_digit =  $1;
+					$decimal       =~ s/$last_digit$//;
+					if ($last_digit > 4)
 					{
-						$increase=1;
-						if ( $decimal eq "" )
+						$increase = 1;
+						if ($decimal eq "")
 						{
 							$real++;
 						}
@@ -143,20 +144,20 @@ sub round
 					}
 				}
 			}
-			if ( $places == 0 )
+			if ($places == 0 )
 			{
-				$rounded_num=$real;
+				$rounded_num = $real;
 			}
 			else
 			{
-				$rounded_num=$real.".".$decimal;
+				$rounded_num = $real.".".$decimal;
 			}
 		}
 	}
 	else
 	{
 		# This is a whole number so just pad 0s as needed.
-		$rounded_num=sprintf("%.${places}f", $rounded_num);
+		$rounded_num = sprintf("%.${places}f", $rounded_num);
 	}
 	
 	# Return the number.
