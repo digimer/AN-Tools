@@ -46,11 +46,11 @@ sub find
 	$an->Alert->_set_error;
 	
 	# Setup default values
-	print "$THIS_FILE ".__LINE__."; ENV{PWD}: [$ENV{PWD}]<br />\n";
+	#print "$THIS_FILE ".__LINE__."; ENV{PWD}: [$ENV{PWD}]<br />\n";
 	my $file  = "";
 	my $dirs  = $an->Storage->search_dirs;
-	print "$THIS_FILE ".__LINE__."; dirs: [$dirs]<br />\n";
-	if (ref($dirs) eq "ARRAY") { foreach my $dir (@{$dirs}) { print "$THIS_FILE ".__LINE__."; - dir: [$dir]<br />\n"; } }
+	#print "$THIS_FILE ".__LINE__."; dirs: [$dirs]<br />\n";
+	#if (ref($dirs) eq "ARRAY") { foreach my $dir (@{$dirs}) { print "$THIS_FILE ".__LINE__."; - dir: [$dir]<br />\n"; } }
 	my $fatal = 0;
 	push @{$dirs}, $ENV{PWD} if $ENV{PWD};
 	
@@ -72,7 +72,7 @@ sub find
 		$dirs  = $_[0] if $_[0];
 		$fatal = $_[1] if $_[1];
 	}
-	print "$THIS_FILE ".__LINE__."; file: [$file], dirs: [$dirs], fatal: [$fatal]<br />\n";
+	#print "$THIS_FILE ".__LINE__."; file: [$file], dirs: [$dirs], fatal: [$fatal]<br />\n";
 	
 	# This is the underlying operating system's directory delimiter as set
 	# by the parent method.
@@ -101,13 +101,13 @@ sub find
 
 		# Clear double-delimiters.
 		$full_file =~ s/$delimiter$delimiter/$delimiter/g;
-		print "$THIS_FILE ".__LINE__."; full file: [$full_file]<br />\n";
+		#print "$THIS_FILE ".__LINE__."; full file: [$full_file]<br />\n";
 		
-# 		print "Searching in: [$dir] for: [$file] ($full_file)\n";
+		#print "$THIS_FILE ".__LINE__."; Searching for: [$full_file] ([$dir] / [$file])<br />\n";
 		if (-f $full_file)
 		{
 			# Found it, return.
-# 			print "Found it!\n";
+			#print "$THIS_FILE ".__LINE__."; Found it!<br />\n";
 			return ($full_file);
 		}
 	}
@@ -169,12 +169,24 @@ sub read_conf
 	}
 	
 	# Make sure I have a sane file name.
-	print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
+	#print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
 	if ($file)
 	{
+		# Find it relative to the AN::Tools root directory.
+		#print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
+		if ($file =~ /^AN::Tools/)
+		{
+			my $dir =  $INC{'AN/Tools.pm'};
+			#print "$THIS_FILE ".__LINE__."; dir: [$dir], file: [$file]<br />\n";
+			$dir    =~ s/Tools.pm//;
+			$file   =~ s/AN::Tools\//$dir/;
+			$file   =~ s/\/\//\//g;
+			#print "$THIS_FILE ".__LINE__."; dir: [$dir], file: [$file]<br />\n";
+		}
+		
 		# I have a file. Is it relative to the install dir or fully
 		# qualified?
-		print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
+		#print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
 		if (($file =~ /^\.\//) || ($file !~ /^\//))
 		{
 			# It's in or relative to this directory.
@@ -182,28 +194,16 @@ sub read_conf
 			{
 				# Can expand using the environment variable.
 				$file =~ s/^\./$ENV{PWD}/;
-				print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
-# 				print "Now it's this file: [$file]\n";
+				#print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
 			}
 			else
 			{
 				# No environmnet variable, search the array of
 				# directories.
+				#print "$THIS_FILE ".__LINE__."; Searching for file: [$file]<br />\n";
 				$file = $an->Storage->find({fatal=>1, file=>$file});
-				print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
+				#print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
 			}
-		}
-		
-		# Find it relative to the AN::Tools root directory.
-		print "$THIS_FILE ".__LINE__."; file: [$file]<br />\n";
-		if ($file =~ /^AN::Tools/)
-		{
-			my $dir =  $INC{'AN/Tools.pm'};
-			print "$THIS_FILE ".__LINE__."; dir: [$dir], file: [$file]<br />\n";
-			$dir    =~ s/Tools.pm//;
-			$file   =~ s/AN::Tools\//$dir/;
-			$file   =~ s/\/\//\//g;
-			print "$THIS_FILE ".__LINE__."; dir: [$dir], file: [$file]<br />\n";
 		}
 	}
 	else

@@ -377,7 +377,7 @@ The 'AN::Tools::String' module's 'get()' was passed a string with a '#!var!x!#' 
 
 =head2 C<37>
 
-free
+The 'AN::Tools' module detected an unknown environment. Defaulting to "html" as it can at least be seen on the command line, unlike the other way around.
 
 =head2 C<38>
 

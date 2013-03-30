@@ -67,12 +67,18 @@ sub new
 			LANGUAGE			=>	'en_CA',
 			SEARCH_DIR			=>	\@INC,
 		},
+		ENV_VALUES			=>	{
+			ENVIRONMENT			=>	'cli',
+		},
+		OS_VALUES			=>	{
+			DIRECTORY_DELIMITER		=>	'/',
+		},
 	};
 	
 	# Bless you!
 	bless $self, $class;
 	
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# This isn't needed, but it makes the code below more consistent with
 	# and portable to other modules.
@@ -89,20 +95,23 @@ sub new
 	$self->Readable->parent($self);
 	$self->Storage->parent($self);
 	$self->String->parent($self);
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Check the operating system and set any OS-specific values.
 	$self->Check->_os;
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
+	
+	# This checks the environment this program is running in.
+	$self->Check->_environment;
 	
 	# Before I do anything, read in values from the 'DEFAULT::CONFIG_FILE'
 	# configuration file.
 	$an->Storage->read_conf($self->{DEFAULT}{CONFIG_FILE});
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# I need to read the initial words early.
 	$self->String->read_words();
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Now I setup my log file and it's path. If the log directory starts
 	# with the directory delimiter, I assume it is fully qualified and
@@ -111,7 +120,7 @@ sub new
 	my $directory_delimiter = $an->_directory_delimiter();
 	my $log_file            = $an->data->{dir}{logs} =~ /^$directory_delimiter/ ? $an->data->{dir}{logs}.$an->data->{'log'}{file} : $an->data->{dir}{install}.$an->data->{dir}{logs}.$an->data->{'log'}{file};
 	$an->Log->file($log_file);
-	print "$THIS_FILE ".__LINE__."<br />\n";
+	#print "$THIS_FILE ".__LINE__."<br />\n";
 	
 	# Set passed parameters if needed.
 	if (ref($param) eq "HASH")
@@ -235,6 +244,18 @@ sub data
 	my $self = shift;
 	
 	return ($self->{DATA});
+}
+
+# This sets or receives the environment the program is running in. Current
+# valid values are 'cli' and 'html'.
+sub environment
+{
+	my ($self) = shift;
+	
+	# Pick up the passed in delimiter, if any.
+	$self->{ENV_VALUES}{ENVIRONMENT} = shift if $_[0];
+	
+	return ($self->{ENV_VALUES}{ENVIRONMENT});
 }
 
 # Makes my handle to AN::Tools::Log clearer when using this module to access

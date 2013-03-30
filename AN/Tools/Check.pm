@@ -68,4 +68,39 @@ sub _os
 	return (1);
 }
 
+# This private method is called my AN::Tools' constructor at startup and checks
+# the calling environment. It will set 'cli' or 'html' depending on what
+# environment variables are set. This in turn is used when displaying output to
+# the user.
+sub _environment
+{
+	my $self = shift;
+	my $an   = $self->parent;
+	
+	if ($ENV{SHELL})
+	{
+		# Some linux variant
+		$an->environment("cli");
+	}
+	elsif ($ENV{HTTP_USER_AGENT})
+	{
+		# Some windows variant.
+		$an->environment("html");
+	}
+	else
+	{
+		# Huh?
+		$an->Alert->warning({
+			title		=>	"Unknown Environment",
+			message		=>	"Unable to determine what environment this script is being called in.",
+			code		=>	37,
+			file		=>	"$THIS_FILE",
+			line		=>	__LINE__
+		});
+		$an->environment("html");
+	}
+	
+	return (1);
+}
+
 1;
